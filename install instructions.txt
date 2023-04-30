@@ -1,23 +1,10 @@
-===================================================================
------------------First install mamba:-----------------
-===================================================================
+Download mambaforge: https://github.com/conda-forge/miniforge#mambaforge
 
-
-Download mambaforge from here:
-
-https://github.com/conda-forge/miniforge#mambaforge
-
-Download and run the windows executable. It will create a whole new Python environment here:
+... by downloading and running the windows executable. It will create a whole new Python environment here:
 
 C:\Users\<username>\mambaforge
 
-
-=================================================================================================================
----Install normal acq4
-=================================================================================================================
-
-# Clone acq4 to local folder
-# open mamba prompt, then type:
+# Clone acq4 to local folder. Then open mamba prompt, then type:
 
 mamba env create -n acq4 -f tools\requirements\qt5-generic.yml
 mamba activate acq4
