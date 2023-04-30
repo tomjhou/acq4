@@ -40,7 +40,9 @@ class CameraDeviceGui(Qt.QWidget):
                         step = 1
                     else:
                         raise TypeError("Invalid parameter specification for '%s': %s" % (k, repr(p)))
-                    if type(mx) in [int, np.long] and type(mn) in [int, np.long]:
+                    # TomJ: new versions of numpy no longer have np.long. So changed it to np.int64,
+                    # but perhaps should just be removed?
+                    if type(mx) in [int, np.int64] and type(mn) in [int, np.int64]:
                         params.append({'name': k, 'type': 'int', 'value': val, 'limits': (mn, mx), 'step': step})
                     else:
                         params.append({'name': k, 'type': 'float', 'value': val, 'limits': (mn, mx), 'dec': True, 'step': 1})

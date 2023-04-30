@@ -1,0 +1,61 @@
+===================================================================
+-----------------First install mamba:-----------------
+===================================================================
+
+
+Download mambaforge from here:
+
+https://github.com/conda-forge/miniforge#mambaforge
+
+Download and run the windows executable. It will create a whole new Python environment here:
+
+C:\Users\<username>\mambaforge
+
+
+=================================================================================================================
+---Install normal acq4
+=================================================================================================================
+
+# Clone acq4 to local folder
+# open mamba prompt, then type:
+
+mamba env create -n acq4 -f tools\requirements\qt5-generic.yml
+mamba activate acq4
+
+python setup.py develop
+
+MUST RUN acq4 from module directory!!
+
+
+=================================================================================================================
+---Install forked acq4
+=================================================================================================================
+
+# First, clone acq4 github repository to folder on local hard drive.
+# Then create and activate new mamba environment from "Miniforge Prompt":
+
+mamba create -n acq4_fork
+mamba activate acq4_fork
+
+# Now install dependencies (for some reason, letting pip do it doesn't work)
+
+mamba install scipy
+mamba install pyqt
+mamba install pyqtgraph
+
+# Now cd to the folder where you cloned acq4, and type:
+
+pip install -e .
+
+Note the "-e" flag, which installs project in "editable" mode from a local path. It should
+automatically install numpy, scipy, h5py, and pillow. To run, type:
+
+python -m acq4
+
+When you run this the first time, it will complain that you don't have 'pyqtgraph'. To get it, type
+
+mamba install pyq
+
+
+# Hopefully everything works now.
+
