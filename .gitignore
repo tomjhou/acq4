@@ -1,3 +1,8 @@
+
+
+/.idea/*
+
+
 *.pyc
 *~
 *.renamed*
@@ -8,6 +13,12 @@ tempLog.txt
 .idea
 acq4.egg-info
 !config/
+
+!config/default.cfg
+!config/devices.cfg
+!config/folderTypes.cfg
+!config/style.css
+
 config/*
 !config/example/
 crash.log

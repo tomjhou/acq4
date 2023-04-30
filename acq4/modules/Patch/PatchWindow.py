@@ -161,7 +161,7 @@ class PatchWindow(Qt.QMainWindow):
     def quit(self):
         #print "Stopping patch thread.."
         geom = self.geometry()
-        uiState = {'window': np.str(self.saveState().toPercentEncoding()), 'geometry': [geom.x(), geom.y(), geom.width(), geom.height()]}
+        uiState = {'window': str(self.saveState().toPercentEncoding()), 'geometry': [geom.x(), geom.y(), geom.width(), geom.height()]}
         Manager.getManager().writeConfigFile(uiState, self.stateFile)
         
         self.thread.stop(block=True)
