@@ -315,7 +315,15 @@ class Manager(Qt.QObject):
                                 conf = conf['config']
                             self.loadDevice(driverName, conf, k)
                         except:
-                            printExc("Error configuring device %s:" % k)
+
+                            msg = "Error configuring device %s:" % k
+
+                            mbox = Qt.QMessageBox()
+                            mbox.setText(msg)
+                            mbox.setStandardButtons(mbox.Ok)
+                            mbox.exec_()
+
+                            printExc()
                             if self.exitOnError:
                                 raise
                     print("=== Device configuration complete ===")

@@ -8,6 +8,8 @@ import os
 import sys
 import threading
 
+import PyQt5.QtWidgets as Qt
+
 from acq4.drivers.MultiClamp.MultiClampTelegraph import wmlib, MultiClampTelegraph
 from acq4.util.clibrary import winDefs, CParser, find_lib, CLibrary
 from acq4.util.debug import printExc
@@ -435,7 +437,17 @@ class MultiClamp:
         if self.debug:
             print("MCDriver.raiseError called:")
             print("    ", msg)
-        raise Exception(err, msg + " " + self.errString(err))
+
+        msg2 = self.errString(err)
+
+        if "MULTICLAMP COMMANDER IS NOT OPEN" in msg2.upper():
+            msg3 = 'ERROR: Multiclamp Commander is not open. Please open it.'
+            mbox = Qt.QMessageBox()
+            mbox.setText(msg3)
+            mbox.setStandardButtons(mbox.Ok)
+            mbox.exec_()
+
+        raise Exception(err, msg + " " + msg2)
 
     def errString(self, err):
         try:

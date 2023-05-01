@@ -186,6 +186,9 @@ else:
         with PyCallGraph(output=GraphvizOutput()):
             app.exec_()
     else:
+
+        app.setStyle('Fusion')
+
         app.exec_()
         pg.exit()  # pg.exit() causes python to exit before Qt has a chance to clean up. 
         # this avoids otherwise irritating exit crashes.
