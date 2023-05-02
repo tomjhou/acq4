@@ -1,3 +1,4 @@
+from __future__ import annotations
 # -*- coding: utf-8 -*-
 """
 Manager.py -  Defines main Manager class for ACQ4
@@ -36,6 +37,10 @@ from .util.HelpfulException import HelpfulException
 from .util.debug import logExc, logMsg, createLogWindow
 
 _ = logExc  # prevent cleanup of logExc; needed by debug
+
+# Needed for type hints
+from acq4.devices.NiDAQ.nidaq import NiDAQ
+from acq4.devices.MultiClamp.multiclamp import MultiClamp
 
 
 def __reload__(old):
@@ -462,7 +467,7 @@ class Manager(Qt.QObject):
         self.devices[name] = dev  # just to prevent device being collected
         return dev
 
-    def getDevice(self, name):
+    def getDevice(self, name) -> NiDAQ:
         """Return a device instance given its name.
         """
         name = str(name)
@@ -476,14 +481,14 @@ class Manager(Qt.QObject):
         """
         return self.listInterfaces('device')
 
-    def reserveDevices(self, devices, timeout=10.0):
+    def reserveDevices(self, devices: list[NiDAQ | MultiClamp | str], timeout=10.0):
         """Return a DeviceLocker that can be used to reserve multiple devices simultaneously::
 
             with manager.reserveDevices(['Camera', 'Clamp1', 'Stage']):
                 # .. do stuff
 
         """
-        devices = [self.getDevice(d) if isinstance(d, six.string_types) else d for d in devices]
+        devices: list[NiDAQ | MultiClamp] = [self.getDevice(d) if isinstance(d, six.string_types) else d for d in devices]
         return DeviceLocker(self, devices, timeout=timeout)
 
     def loadModule(self, moduleClassName, name=None, config=None, forceReload=False, importMod=None, execPath=None):
@@ -776,19 +781,19 @@ class Manager(Qt.QObject):
         self.logWindow.show()
 
     ## These functions just wrap the functionality of an InterfaceDirectory
-    def declareInterface(self, *args, **kargs):  ## args should be name, [types..], object  
+    def declareInterface(self, *args, **kargs) -> bool:  ## args should be name, [types..], object
         with self.lock:
             return self.interfaceDir.declareInterface(*args, **kargs)
 
-    def removeInterface(self, *args, **kargs):
+    def removeInterface(self, *args, **kargs) -> None:
         with self.lock:
             return self.interfaceDir.removeInterface(*args, **kargs)
 
-    def listInterfaces(self, *args, **kargs):
+    def listInterfaces(self, *args, **kargs) -> dict:
         with self.lock:
             return self.interfaceDir.listInterfaces(*args, **kargs)
 
-    def getInterface(self, *args, **kargs):
+    def getInterface(self, *args, **kargs) -> NiDAQ:
         """Return the object that was previously declared with *name* and interface *type*.
         """
         with self.lock:

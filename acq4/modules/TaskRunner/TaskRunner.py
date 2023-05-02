@@ -1,3 +1,4 @@
+from __future__ import annotations
 from collections import OrderedDict
 
 import gc
@@ -26,6 +27,11 @@ from ..Module import Module
 
 Ui_MainWindow = Qt.importTemplate('.TaskRunnerTemplate')
 
+# Needed for type hint
+from acq4.devices.NiDAQ.nidaq import NiDAQ
+from acq4.devices.NiDAQ.taskGUI import NiDAQTask
+from acq4.devices.DAQGeneric.DAQGeneric import DAQGeneric
+from acq4.devices.DAQGeneric.taskGUI import DAQGenericTaskGui
 
 class Window(Qt.QMainWindow):
     def __init__(self, pr):
@@ -88,7 +94,7 @@ class TaskRunner(Module):
         self.loopEnabled = False
         self.devListItems = {}
 
-        self.docks = {}
+        self.docks : dict[str, Qt.QDockWidget] = {}
         self.firstDock = None  # all new docks should stack here
         self.analysisDocks = {}
         self.deleteState = 0
@@ -368,8 +374,8 @@ class TaskRunner(Module):
                 self.docks[d] = None  ## Instantiate to prevent endless loops!
                 # print "  Create", d
                 try:
-                    dev = self.manager.getDevice(d)
-                    dw = dev.taskInterface(self)
+                    dev: NiDAQ | DAQGeneric = self.manager.getDevice(d)
+                    dw: NiDAQTask | DAQGenericTaskGui = dev.taskInterface(self)
                 except:
                     printExc("Error while creating dock '%s':" % d)
                     del self.docks[d]

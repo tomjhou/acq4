@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import time
+import typing
 
 import numpy as np
 
@@ -12,9 +15,11 @@ from .taskGUI import MultiClampTaskGui
 from ..Device import DeviceTask
 from ...util.debug import printExc
 
+if typing.TYPE_CHECKING:
+    from ...drivers.MultiClamp.multiclamp import MultiClampChannel
+
 
 class MultiClamp(PatchClamp):
-
     # inherited signals: sigStateChanged, sigHoldingChanged
 
     # remote process used to connect to commander from 32-bit python
@@ -25,7 +30,7 @@ class MultiClamp(PatchClamp):
         self.config = config
         self.index = None
         self.devRackGui = None
-        self.mc = None
+        self.mc: MultiClampChannel | None = None
 
         # Cache MC parameters because they are very expensive to retrieve
         # (especially with multiple channels)
@@ -99,14 +104,13 @@ class MultiClamp(PatchClamp):
             self.mc = mc.getChannel(self.config['channelID'], multiprocess.proxy(self.mcUpdate, callSync='off'))
         else:
             self.mc = mc.getChannel(self.config['channelID'], self.mcUpdate)
-        
+
         ## wait for first update..
         start = time.time()
         while self.mc.getState() is None:
             time.sleep(0.1)
             if time.time() - start > 10:
                 raise Exception("Timed out waiting for first update from multi clamp commander.")
-        
         print("Created MultiClamp device", self.config['channelID'])
 
         ## set configured holding values
@@ -125,7 +129,6 @@ class MultiClamp(PatchClamp):
                 self.mc.setParams(defaults[mode])
         self.setMode('I=0')  ## safest mode to leave clamp in
 
-        
         dm.declareInterface(name, ['clamp'], self)
 
     def listChannels(self):
@@ -138,7 +141,7 @@ class MultiClamp(PatchClamp):
         if self.mc is not None:
             self.mc.mc.quit()
 
-    def mcUpdate(self, state=None, mode=None):
+    def mcUpdate(self, state: MultiClamp | None = None, mode: dict[str, str] = None):
         """MC state (or internal holding state) has changed, handle the update."""
         with self.stateLock:
             self._paramCache = {}  # not sure if this is necessary or helpful
@@ -157,7 +160,7 @@ class MultiClamp(PatchClamp):
                 self._switchingToMode = None
 
         self.sigStateChanged.emit(state)
-        
+
     def getLastState(self, mode=None):
         """Return the last known state for the given mode."""
         if mode is None:
@@ -165,7 +168,7 @@ class MultiClamp(PatchClamp):
         with self.stateLock:
             if mode in self.lastState:
                 return self.lastState[mode]
-        
+
     def extCmdScale(self, mode):
         """Return our best guess as to the external command sensitivity for the given mode."""
         s = self.getLastState(mode)
@@ -176,7 +179,7 @@ class MultiClamp(PatchClamp):
                 return 50
             else:
                 return 2.5e9
-        
+
     def getState(self):
         return self.mc.getState()
 
@@ -210,10 +213,10 @@ class MultiClamp(PatchClamp):
 
     def taskInterface(self, taskRunner):
         return MultiClampTaskGui(self, taskRunner)
-    
+
     def createTask(self, cmd, parentTask):
         return MultiClampTask(self, cmd, parentTask)
-    
+
     def getHolding(self, mode=None):
         if mode is None:  ## If no mode is specified, use the current mode
             mode = self.mc.getMode()
@@ -221,14 +224,14 @@ class MultiClamp(PatchClamp):
             return 0.0
         else:
             return self.holding[mode]
-            
+
     def setHolding(self, mode=None, value=None):
         """Define and/or set the holding values for this device. 
 
         Note--these are ACQ4-controlled holding values, NOT the holding values used by the amplifier.
         It is important to have this because the amplifier's holding values cannot be changed
         before switching modes.
-        """        
+        """
         with self.dm.reserveDevices([self, self.config['commandChannel']['device']]):
             currentMode = self.mc.getMode()
             if mode is None:  ## If no mode is specified, use the current mode
@@ -237,7 +240,7 @@ class MultiClamp(PatchClamp):
                     return
             if mode == 'I=0':
                 raise Exception("Can't set holding value for I=0 mode.")
-            
+
             ## Update stored holding value if value is supplied
             if value is not None:
                 if self.holding[mode] == value:
@@ -248,13 +251,13 @@ class MultiClamp(PatchClamp):
                 if mode == currentMode:
                     self.sigStateChanged.emit(state)
                 self.sigHoldingChanged.emit(self, mode)
-                
+
             ## We only want to set the actual DAQ channel if:
             ##   - currently in I=0, or 
             ##   - currently in the mode that was changed
             if mode != currentMode and currentMode != 'I=0':
                 return
-            
+
             holding = self.holding[mode]
             daq = self.getDAQName('command')
             chan = self.config['commandChannel']['channel']
@@ -271,7 +274,7 @@ class MultiClamp(PatchClamp):
     def autoPipetteOffset(self):
         with self.dm.reserveDevices([self]):
             self.mc.autoPipetteOffset()
-        
+
     def autoBridgeBalance(self):
         with self.dm.reserveDevices([self]):
             self.mc.autoBridgeBal()
@@ -283,7 +286,7 @@ class MultiClamp(PatchClamp):
 
     def listSignals(self, mode):
         return self.mc.listSignals(mode)
-        
+
     def getMode(self):
         return self.mc.getMode()
 
@@ -298,7 +301,7 @@ class MultiClamp(PatchClamp):
             self._paramCache.pop(param, None)
 
         with self.dm.reserveDevices([self, self.config['commandChannel']['device']]):
-            mcMode = self.mc.getMode()
+            mcMode: str = self.mc.getMode()
             if mcMode == mode:  ## Mode is already correct
                 return
 
@@ -359,11 +362,11 @@ class MultiClampTask(DeviceTask):
         self.daqTasks = {}
 
         ## Sanity checks and default values for command:
-        
+
         if ('mode' not in self.cmd) or (type(self.cmd['mode']) is not str) or (self.cmd['mode'].upper() not in ['IC', 'VC', 'I=0']):
             raise Exception("Multiclamp command must specify clamp mode (IC, VC, or I=0)")
         self.cmd['mode'] = self.cmd['mode'].upper()
-        
+
         for ch in ['primary', 'secondary']:
             if ch not in self.cmd:
                 self.cmd[ch] = None # defaultModes[self.cmd['mode']][ch]
@@ -375,15 +378,15 @@ class MultiClampTask(DeviceTask):
     def configure(self):
         """Sets the state of a remote multiclamp to prepare for a program run."""
         #print "mc configure"
-        
+
         #from debug import Profiler
         #prof = Profiler()
         ## Set state of clamp
-        
+
         ## set holding level
         if 'holding' in self.cmd and self.cmd['mode'] != 'I=0':
             self.dev.setHolding(self.cmd['mode'], self.cmd['holding'])
-        
+
         self.dev.setMode(self.cmd['mode'])
         if self.cmd['primary'] is not None:
             self.dev.setPrimarySignal(self.cmd['primary'])
@@ -410,9 +413,9 @@ class MultiClampTask(DeviceTask):
 
         #self.state = self.dev.mc.getState()
         self.state = self.dev.getLastState()
-        
+
         #prof.mark('    Multiclamp: get state')
-        
+
         recordState = self.cmd.get('recordState', False)
         if recordState is not False:
             if recordState is True:
@@ -426,14 +429,14 @@ class MultiClampTask(DeviceTask):
             self.state['ClampParams'] = {}
             for k in exState:
                 self.state['ClampParams'][k] = exState[k]
-                
+
         #prof.mark('    Multiclamp: recordState?')
-                
+
         self.holdingVal = self.dev.getHolding(self.cmd['mode'])
-        
+
         #print "mc configure complete"
         #prof.mark('    Multiclamp: set holding')
-                
+
     def getUsedChannels(self):
         """Return a list of the channels this task uses"""
         if self.usedChannels is None:
@@ -442,18 +445,18 @@ class MultiClampTask(DeviceTask):
                 self.usedChannels.append('secondary')
             if 'command' in self.cmd:
                 self.usedChannels.append('command')
-            
-        return self.usedChannels        
-                
+
+        return self.usedChannels
+
     def createChannels(self, daqTask):
         ## Is this the correct DAQ device for any of my channels?
         ## create needed channels + info
         ## write waveform to command channel if needed
-        
+
         ## NOTE: no guarantee that self.configure has been run before createChannels is called! 
         for ch in self.getUsedChannels():
             chConf = self.dev.config[ch+'Channel']
-                
+
             if chConf['device'] == daqTask.devName():
                 if ch == 'command':
                     daqTask.addChannel(chConf['channel'], chConf['type'])
@@ -467,15 +470,15 @@ class MultiClampTask(DeviceTask):
                     mode = chConf.get('mode', None)
                     daqTask.addChannel(chConf['channel'], chConf['type'], mode)
                 self.daqTasks[ch] = daqTask
-        
+
     def start(self):
         ## possibly nothing required here, DAQ will start recording.
         pass
-        
+
     def isDone(self):
         ## DAQ task handles this for us.
         return True
-        
+
     def getResult(self):
         ## Access data recorded from DAQ task
         ## create MetaArray and fill with MC state info
@@ -505,10 +508,10 @@ class MultiClampTask(DeviceTask):
                 result[ch]['units'] = self.state[ch + 'Units']
                 result[ch]['name'] = ch
         # print result
-            
+
         if len(result) == 0:
             return None
-            
+
         ## Copy state from first channel (assume this is the same for all channels)
         #firstChInfo = result[channels[0]]['info']
         #for k in firstChInfo:
@@ -516,12 +519,12 @@ class MultiClampTask(DeviceTask):
         daqState = {}
         for ch in result:
             daqState[ch] = result[ch]['info']
-            
+
         ## record command holding value
         if 'command' not in daqState:
             daqState['command'] = {}
         daqState['command']['holding'] = self.holdingVal
-            
+
         #timeVals = linspace(0, float(self.state['numPts']-1) / float(self.state['rate']), self.state['numPts'])
         timeVals = np.linspace(0, float(nPts-1) / float(rate), nPts)
         chanList = [np.atleast_2d(result[x]['data']) for x in result]
@@ -536,19 +539,19 @@ class MultiClampTask(DeviceTask):
             for a in chanList:
                 print(a.shape)
             raise
-        
+
         info = [axis(name='Channel', cols=cols), axis(name='Time', units='s', values=timeVals)] + [{'ClampState': self.state, 'DAQ': daqState}]
-        
+
         taskInfo = self.cmd.copy()
         if 'command' in taskInfo:
             del taskInfo['command']
         info[-1]['Protocol'] = taskInfo
         info[-1]['startTime'] = result[list(result.keys())[0]]['info']['startTime']
-        
+
         marr = MetaArray(arr, info=info)
-            
+
         return marr
-    
+
     def stop(self, abort=False):
         ## This is just a bit sketchy, but these tasks have to be stopped before the holding level can be reset.
         for ch in self.daqTasks:

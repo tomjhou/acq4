@@ -99,7 +99,7 @@ class StimGenerator(Qt.QWidget):
         self.autoUpdate()
 
     def widgetGroupInterface(self):
-        return (self.sigStateChanged, StimGenerator.saveState, StimGenerator.loadState)
+        return self.sigStateChanged, StimGenerator.saveState, StimGenerator.loadState
 
     def setOffset(self, o):
         """Set the offset to be added to all generated data.
@@ -150,6 +150,11 @@ class StimGenerator(Qt.QWidget):
         self.ui.advancedBtn.setChecked(True)
         self.setAdvancedMode(True)
 
+    STACK_SIMPLE = 0
+    STACK_WARNING = 1
+    STACK_ADVANCED = 2
+    STACK_INSTRUCTIONS = 3
+
     def updateWidgets(self):
         ## show/hide widgets depending on the current mode.
         errVis = self.ui.errorBtn.isChecked()
@@ -160,15 +165,15 @@ class StimGenerator(Qt.QWidget):
             self.ui.errorBtn.hide()
         
         if self.ui.helpBtn.isChecked():
-            self.ui.stack.setCurrentIndex(3)
+            self.ui.stack.setCurrentIndex(self.STACK_INSTRUCTIONS)
             return
         if self.ui.advancedBtn.isChecked():
-            self.ui.stack.setCurrentIndex(2)
+            self.ui.stack.setCurrentIndex(self.STACK_ADVANCED)
         else:
             if self.advancedMode:
-                self.ui.stack.setCurrentIndex(1)
+                self.ui.stack.setCurrentIndex(self.STACK_WARNING)
             else:
-                self.ui.stack.setCurrentIndex(0)
+                self.ui.stack.setCurrentIndex(self.STACK_SIMPLE)
 
     def setAdvancedMode(self, adv):
         if self.lockMode or self.advancedMode == adv:
@@ -298,7 +303,6 @@ class StimGenerator(Qt.QWidget):
             self.pSpace = self.seqParams.compile()
         return self.pSpace
 
-
     def listSequences(self):
         """ return an ordered dict of the sequence parameter names and values in the same order as that
         of the axes returned by get Sequence"""
@@ -328,7 +332,6 @@ class StimGenerator(Qt.QWidget):
             self.ui.errorBtn.setStyleSheet('QToolButton {border: 2px solid #F00; border-radius: 3px}')
             #self.ui.errorBtn.show()
         self.updateWidgets()
-            
         
     def getSingle(self, rate, nPts, params=None):
         """
@@ -404,8 +407,7 @@ class StimGenerator(Qt.QWidget):
                 except SyntaxError as err:
                     err.lineno -= 1
                     raise err
-                
-            
+
         if isinstance(ret, np.ndarray):
             #ret *= self.scale
             ret += self.offset
@@ -426,8 +428,6 @@ class StimGenerator(Qt.QWidget):
         ## Must be in its own function so that obj is properly scoped to the lambda function.
         obj = getattr(waveforms, name)
         return lambda *args, **kwargs: obj(arg, *args, **kwargs)
-        
-
 
 
 ## Old sequence parsing functions for backward compatibility:

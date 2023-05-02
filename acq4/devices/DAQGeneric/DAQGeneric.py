@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+from __future__ import print_function, annotations
+
+from typing import TYPE_CHECKING
 
 from collections import OrderedDict
 
@@ -16,6 +18,10 @@ from acq4.util.debug import printExc
 from MetaArray import MetaArray, axis
 
 Ui_Form = Qt.importTemplate('.DeviceTemplate')
+
+# Needed for type hints. Use of TYPE_CHECKING helps to avoid circular import
+if TYPE_CHECKING:
+    from acq4.devices.NiDAQ.nidaq import NiDAQ
 
 
 class DataMapping:
@@ -174,7 +180,7 @@ class DAQGeneric(Device):
             if not isVirtual:
                 daq = chConf['device']
                 chan = chConf['channel']
-                daqDev = self.dm.getDevice(daq)
+                daqDev: NiDAQ = self.dm.getDevice(daq)
             prof('get dev')
 
         ## release DGLock before setChannelValue

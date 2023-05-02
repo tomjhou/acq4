@@ -11,17 +11,19 @@ class StimParamSet(GroupParameter):
         GroupParameter.__init__(self, name='Stimuli', type='group',
                            addText='Add Stimulus..', addList=['Pulse', 'Pulse Train'])
         self.meta = {}
-        
+
     def addNew(self, type):
         with self.treeChangeBlocker():  ## about to make lots of tree changes;
                                         ## suppress change signal until we're done.
             if type == 'Pulse':
-                ch = self.addChild(PulseParameter())
+                ch = PulseParameter(pulseWidth=0.01, pulseAmpl=0.2)
+                self.addChild(ch)
             elif type == 'Pulse Train':
-                ch = self.addChild(PulseTrainParameter())
+                ch = PulseTrainParameter(pulseAmpl=0.05, pulsePeriod=.025)
+                self.addChild(ch)
             else:
                 raise Exception('Unknown type %s' % type)
-            
+
             for ax in self.meta:
                 self.setMeta(ax, self.meta[ax], ch)
 
@@ -43,7 +45,7 @@ class StimParamSet(GroupParameter):
             if ch.opts.get('axis', None) == axis:   ## set options on any parameter that matches axis
                 ch.setOpts(**opts)
             self.setMeta(axis, opts, root=ch)
-            
+
     def compile(self):
         fns = []
         params = {}
@@ -69,7 +71,7 @@ class StimParamSet(GroupParameter):
                     ch = PulseTrainParameter(name=k)
                 self.addChild(ch)
                 ch.setState(state[k])
-        
+
     def getState(self):
         state = collections.OrderedDict()
         for ch in self:
@@ -83,28 +85,28 @@ class SeqParameter(SimpleParameter):
         args['expanded'] = args.get('expanded', False)
         SimpleParameter.__init__(self, **args)
         initialParams = [ch.name() for ch in self]
-        
+
         newParams = [
             {'name': 'sequence', 'type': 'list', 'value': 'off', 'values': ['off', 'range', 'list']},
-            {'name': 'start', 'type': 'float', 'axis': axis, 'value': 0, 'visible': False}, 
-            {'name': 'stop', 'type': 'float', 'axis': axis, 'value': 0, 'visible': False}, 
+            {'name': 'start', 'type': 'float', 'axis': axis, 'value': 0, 'visible': False},
+            {'name': 'stop', 'type': 'float', 'axis': axis, 'value': 0, 'visible': False},
             {'name': 'steps', 'type': 'int', 'value': 10, 'visible': False},
-            {'name': 'log spacing', 'type': 'bool', 'value': False, 'visible': False}, 
-            {'name': 'list', 'type': 'str', 'value': '', 'visible': False}, 
-            {'name': 'randomize', 'type': 'bool', 'value': False, 'visible': False}, 
+            {'name': 'log spacing', 'type': 'bool', 'value': False, 'visible': False},
+            {'name': 'list', 'type': 'str', 'value': '', 'visible': False},
+            {'name': 'randomize', 'type': 'bool', 'value': False, 'visible': False},
         ]
         for ch in newParams:
             self.addChild(ch)
         #print "Built sequence param:", id(self), args['name'], args['type']
         #self.sequence.sigTreeStateChanged.connect(self.seqChanged)
-        
+
         self.visibleParams = {  ## list of params to display in each mode
             'off': initialParams+['sequence'],
             'range': initialParams+['sequence', 'start', 'stop', 'steps', 'log spacing', 'randomize'],
             'list': initialParams+['sequence', 'list', 'randomize'],
         }
-        
-        
+
+
     def treeStateChanged(self, param, changes):
         ## catch changes to 'sequence' so we can hide/show other params.
         ## Note: it would be easier to just catch self.sequence.sigValueChanged,
@@ -113,7 +115,7 @@ class SeqParameter(SimpleParameter):
         with self.treeChangeBlocker():
             ## queue up change 
             SimpleParameter.treeStateChanged(self, param, changes)
-            
+
             ## if needed, add some more changes before releasing the signal
             for param, change, data in changes:
                 ## if the sequence value changes, hide/show other parameters
@@ -147,7 +149,7 @@ class SeqParameter(SimpleParameter):
                 seqData['randomize'] = self['randomize']
                 #seq = seq + str(self['list'])
             return name, seqData
-        
+
     def valueString(self, param):
         units = param.opts.get('units', None)
         if isinstance(units, six.string_types) and len(units) > 0:
@@ -155,14 +157,14 @@ class SeqParameter(SimpleParameter):
         else:
             val = '%0.5g' % param.value()
         return val
-    
+
     def setOpts(self, **opts):
         SimpleParameter.setOpts(self, **opts)
         if 'readonly' in opts:  ## if this param is set to readonly, then disable sequencing.
             if opts['readonly'] is False:
                 self['sequence'] = 'off'
             self.param('sequence').setOpts(readonly=opts['readonly'], visible=False)
-    
+
     def setState(self, state):
         self.setValue(state['value'])
         self.setDefault(state['value'])
@@ -171,7 +173,7 @@ class SeqParameter(SimpleParameter):
                 continue
             self[k] = state[k]
             self.param(k).setDefault(state[k])
-    
+
     def getState(self):
         state = collections.OrderedDict()
         for ch in self:
@@ -193,12 +195,21 @@ class PulseParameter(GroupParameter):
             kargs['autoIncrementName'] = True
         if 'type' not in kargs:
             kargs['type'] = 'pulse'
+        if 'pulseWidth' in kargs:
+            pulseWidth = kargs['pulseWidth']
+        else:
+            pulseWidth = 0.005
+        if 'pulseAmpl' in kargs:
+            pulseAmpl = kargs['pulseAmpl']
+        else:
+            pulseAmpl = 0.1
         kargs['strictNaming'] = True
-        GroupParameter.__init__(self, removable=True, renamable=True,
+        GroupParameter.__init__(
+            self, removable=True, renamable=True,
             children=[
-                SeqParameter(**{'name': 'start', 'type': 'float', 'axis': 'x', 'value': 0.01,}),
-                SeqParameter(**{'name': 'length', 'type': 'float', 'axis': 'x', 'value': 0.01}),
-                SeqParameter(**{'name': 'amplitude', 'type': 'float', 'axis': 'y', 'value': 0}),
+                SeqParameter(**{'name': 'start', 'type': 'float', 'axis': 'x', 'value': 0.01, }),
+                SeqParameter(**{'name': 'length', 'type': 'float', 'axis': 'x', 'value': pulseWidth}),
+                SeqParameter(**{'name': 'amplitude', 'type': 'float', 'axis': 'y', 'value': pulseAmpl}),
                 SeqParameter(**{'name': 'sum', 'type': 'float', 'axis': 'xy', 'value': 0, 'limits': (0, None),
                     'children': [{'name': 'affect', 'type': 'list', 'values': ['length', 'amplitude'], 'value': 'length'}]
                     }),
@@ -206,7 +217,7 @@ class PulseParameter(GroupParameter):
         self.param('length').sigValueChanged.connect(self.lenChanged)
         self.param('amplitude').sigValueChanged.connect(self.ampChanged)
         self.param('sum').sigValueChanged.connect(self.sumChanged)
-        
+
     def lenChanged(self):
         self.param('sum').setValue(abs(self['length']) * self['amplitude'], blockSignal=self.sumChanged)
 
@@ -234,7 +245,7 @@ class PulseParameter(GroupParameter):
 
     def preCompile(self):
         ## prepare data for compile
-        seqParams = [self.param('start').compile(), self.param('length').compile(), self.param('amplitude').compile()] 
+        seqParams = [self.param('start').compile(), self.param('length').compile(), self.param('amplitude').compile()]
         (start, startSeq) = seqParams[0]
         (length, lenSeq) = seqParams[1]
         (amp, ampSeq) = seqParams[2]
@@ -256,27 +267,27 @@ class PulseParameter(GroupParameter):
                     raise Exception("%s: Can not sequence over amplitude and sum simultaneously." % self.name())
                 amp = "%s / (%s)" % (sumName, length)
             seq[sumName] = sumSeq
-        
+
         return start, length, amp, seq
-    
+
     def compile(self):
         start, length, amp, seq = self.preCompile()
         fnStr = "pulse(%s, %s, %s)" % (start, length, amp)
         return fnStr, seq
-        
+
     def setState(self, state):
         for k, v in state.items():
             if k == 'type':
                 continue
             self.param(k).setState(v)
-        
+
     def getState(self):
         state = collections.OrderedDict()
         for ch in self:
             state[ch.name()] = ch.getState()
         state['type'] = self.opts['type']
         return state
-        
+
 
 class PulseTrainParameter(PulseParameter):
     def __init__(self, **kargs):
@@ -284,37 +295,41 @@ class PulseTrainParameter(PulseParameter):
         if 'name' not in kargs:
             kargs['name'] = 'PulseTrain'
             kargs['autoIncrementName'] = True
-        
+        if 'pulsePeriod' in kargs:
+            pulsePeriod = kargs['pulsePeriod']
+        else:
+            pulsePeriod = 0.025
+
         PulseParameter.__init__(self, **kargs)
-        
+
         params = [
-            SeqParameter(**{'name': 'period', 'type': 'float', 'value': 0.01, 'axis': 'x'}),
-            SeqParameter(**{'name': 'pulse_number', 'type': 'int', 'value': 10}),
+            SeqParameter(**{'name': 'period', 'type': 'float', 'value': pulsePeriod, 'axis': 'x'}),
+            SeqParameter(**{'name': 'pulse_number', 'type': 'int', 'value': 5}),
         ]
         for p in params:
             self.addChild(p)
-        
+
     def preCompile(self):
         start, length, amp, seq = PulseParameter.preCompile(self)
-        
-        seqParams = [self.param('period').compile(), self.param('pulse_number').compile()] 
+
+        seqParams = [self.param('period').compile(), self.param('pulse_number').compile()]
         (interval, intSeq) = seqParams[0]
         (number, numSeq) = seqParams[1]
         seq.update({name:seq for name, seq in seqParams if seq is not None})
-        
+
         start = "%s + np.linspace(0, %s * (%s-1), %s)" % (start, interval, number, number)
         return start, length, amp, seq
-        
+
     def compile(self):
         start, length, amp, seq = self.preCompile()
         fnStr = "pulse(\n  times=%s,\n  widths=%s,\n  values=%s\n)" % (start, length, amp)
         return fnStr, seq
-        
+
     def setState(self, state):
         # for backward compatibility
         if 'interpulse_length' in state:
             state['period'] = state['interpulse_length']
             del state['interpulse_length']
         return PulseParameter.setState(self, state)
-    
-        
+
+

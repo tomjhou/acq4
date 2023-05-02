@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+from __future__ import print_function, annotations
 
 import atexit
 import ctypes
@@ -9,6 +9,7 @@ import sys
 import threading
 
 import PyQt5.QtWidgets as Qt
+from typing import Dict, Any, Callable
 
 from acq4.drivers.MultiClamp.MultiClampTelegraph import wmlib, MultiClampTelegraph
 from acq4.util.clibrary import winDefs, CParser, find_lib, CLibrary
@@ -109,13 +110,13 @@ class MultiClampChannel:
         with self.lock:
             return self.state['mode']
 
-    def updateState(self, state):
+    def updateState(self, state: Dict[str, str]):
         """Called by MultiClamp when changes have occurred in MCC."""
         if self.debug:
             print("MCChannel.updateState called.")
         with self.lock:
             self.state = state
-            cb = self.callback
+            cb: Callable[Any, Any] = self.callback
         if cb is not None:
             if self.debug:
                 print("   calling callback:", cb)
