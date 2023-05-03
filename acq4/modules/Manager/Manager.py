@@ -71,8 +71,9 @@ class Manager(Module):
                 self.showMessage("Error creating dock for device '%s', see console for details." % d, 10000)
                 printExc("Error while creating dock for device '%s':" % d)
 
-    def createDockForDevice(self, deviceName):
-        dw = self.manager.getDevice(deviceName).deviceInterface(self)
+    def createDockForDevice(self, deviceName: str):
+        dev = self.manager.getDevice(deviceName)
+        dw = dev.deviceInterface(self)
         if dw is None:
             return None
         dock = Qt.QDockWidget(deviceName)

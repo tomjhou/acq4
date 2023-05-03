@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 import os
 import scipy.optimize
@@ -17,6 +21,9 @@ from pyqtgraph import PlotWidget, mkPen
 from pyqtgraph import WidgetGroup
 from pyqtgraph import siFormat
 from pyqtgraph.debug import Profiler
+
+if TYPE_CHECKING:
+    from acq4.Manager import Task
 
 Ui_Form = Qt.importTemplate('.PatchTemplate')
 
@@ -509,7 +516,7 @@ class PatchThread(Thread):
                 count += 1
                 try:
                     ## Create task
-                    task = self.manager.createTask(cmd)
+                    task: Task = self.manager.createTask(cmd)
                     ## Execute task
                     task.execute()
                     exc = True
@@ -540,7 +547,10 @@ class PatchThread(Thread):
             result = results[0]
             result[clampName] = avg
         #print result[clampName]['primary'].max(), result[clampName]['primary'].min()
-        
+
+        if avg is None:
+            raise Exception("No data obtained")
+
         #print result[clampName]
         try:
             analysis = self.analyze(avg, params)

@@ -16,23 +16,21 @@ class StimParamSet(GroupParameter):
         with self.treeChangeBlocker():  ## about to make lots of tree changes;
                                         ## suppress change signal until we're done.
             if type == 'Pulse':
-                ch = PulseParameter(pulseWidth=0.01, pulseAmpl=0.2)
-                self.addChild(ch)
+                ch = self.addChild(PulseParameter(pulseWidth=0.01, pulseAmpl=0.2))
             elif type == 'Pulse Train':
-                ch = PulseTrainParameter(pulseAmpl=0.05, pulsePeriod=.025)
-                self.addChild(ch)
+                ch = self.addChild(PulseTrainParameter(pulsePeriod=.025, pulseAmpl=0.05, ))
             else:
                 raise Exception('Unknown type %s' % type)
 
             for ax in self.meta:
                 self.setMeta(ax, self.meta[ax], ch)
 
-    def addChild(self, ch):
+    def addChild(self, ch: 'PulseParameter'):
         GroupParameter.addChild(self, ch)
         for ax in self.meta:
             self.setMeta(ax, self.meta[ax], ch)
 
-    def setMeta(self, axis, opts=None, root=None, **kargs):  ## set units, limits, etc.
+    def setMeta(self, axis: str, opts=None, root=None, **kargs):  ## set units, limits, etc.
         ## Set meta-properties (units, limits, readonly, etc.) for specific sets of values
         ## axis should be 'x', 'y', or 'xy'
         if opts is None:
@@ -189,20 +187,12 @@ class SeqParameter(SimpleParameter):
 
 
 class PulseParameter(GroupParameter):
-    def __init__(self, **kargs):
+    def __init__(self, pulseWidth=0.005, pulseAmpl=0.1, **kargs):
         if 'name' not in kargs:
             kargs['name'] = 'Pulse'
             kargs['autoIncrementName'] = True
         if 'type' not in kargs:
             kargs['type'] = 'pulse'
-        if 'pulseWidth' in kargs:
-            pulseWidth = kargs['pulseWidth']
-        else:
-            pulseWidth = 0.005
-        if 'pulseAmpl' in kargs:
-            pulseAmpl = kargs['pulseAmpl']
-        else:
-            pulseAmpl = 0.1
         kargs['strictNaming'] = True
         GroupParameter.__init__(
             self, removable=True, renamable=True,
@@ -290,15 +280,11 @@ class PulseParameter(GroupParameter):
 
 
 class PulseTrainParameter(PulseParameter):
-    def __init__(self, **kargs):
+    def __init__(self, pulsePeriod=0.025, **kargs):
         kargs['type'] = 'pulseTrain'
         if 'name' not in kargs:
             kargs['name'] = 'PulseTrain'
             kargs['autoIncrementName'] = True
-        if 'pulsePeriod' in kargs:
-            pulsePeriod = kargs['pulsePeriod']
-        else:
-            pulsePeriod = 0.025
 
         PulseParameter.__init__(self, **kargs)
 

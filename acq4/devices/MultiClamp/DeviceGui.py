@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+from __future__ import print_function, annotations
+
+from typing import TYPE_CHECKING
+
 from acq4.util import Qt
 import pyqtgraph as pg
 
 Ui_Form = Qt.importTemplate('.RackTemplate')
 
+if TYPE_CHECKING:
+    from acq4.modules.Manager import Manager
+    from acq4.devices.MultiClamp.multiclamp import MultiClamp
 
 class MCDeviceGui(Qt.QWidget):
-    def __init__(self, dev, win):
+    def __init__(self, dev: MultiClamp, win: Manager):
         Qt.QWidget.__init__(self)
         self.dev = dev
         self.win = win

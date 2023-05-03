@@ -413,7 +413,18 @@ class MultiClamp:
             serial = ctypes.create_string_buffer(b'\0' * 16)
             ret = self.call(fn, pszSerialNum=serial, uBufSize=16)
         except:
-            if sys.exc_info()[1].args[0] == 6000:  ## We have reached the end of the device list
+
+            exc: Exception = sys.exc_info()[1]
+
+            if "MULTICLAMP COMMANDER IS NOT OPEN" in exc.args[1].upper():
+                msg3 = 'MultiClamp Commander is not open. Will not be able to communicate with MultiClamp device.'
+                mbox = Qt.QMessageBox()
+                mbox.setText(msg3)
+                mbox.setWindowTitle("ERROR:")
+                mbox.setStandardButtons(mbox.Ok)
+                mbox.exec_()
+
+            if exc.args[0] == 6000:  ## We have reached the end of the device list
                 return None
             raise
         
@@ -439,16 +450,7 @@ class MultiClamp:
             print("MCDriver.raiseError called:")
             print("    ", msg)
 
-        msg2 = self.errString(err)
-
-        if "MULTICLAMP COMMANDER IS NOT OPEN" in msg2.upper():
-            msg3 = 'ERROR: Multiclamp Commander is not open. Please open it.'
-            mbox = Qt.QMessageBox()
-            mbox.setText(msg3)
-            mbox.setStandardButtons(mbox.Ok)
-            mbox.exec_()
-
-        raise Exception(err, msg + " " + msg2)
+        raise Exception(err, msg + " " + self.errString(err))
 
     def errString(self, err):
         try:

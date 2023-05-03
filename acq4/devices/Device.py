@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+from typing import TYPE_CHECKING
 
 import os
 import traceback
@@ -10,6 +11,9 @@ from acq4.Interfaces import InterfaceMixin
 from acq4.util import Qt
 from acq4.util.Mutex import Mutex
 from acq4.util.debug import printExc
+
+if TYPE_CHECKING:
+    from acq4.modules.Manager import Manager
 
 
 class Device(InterfaceMixin, Qt.QObject):  # QObject calls super, which is disastrous if not last in the MRO
@@ -47,7 +51,7 @@ class Device(InterfaceMixin, Qt.QObject):  # QObject calls super, which is disas
     def quit(self):
         pass
     
-    def deviceInterface(self, win):
+    def deviceInterface(self, win: Manager):
         """Return a widget with a UI to put in the device rack"""
         return None
         

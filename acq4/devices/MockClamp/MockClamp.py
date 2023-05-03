@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function, with_statement
+from __future__ import print_function, with_statement, annotations
+
+from typing import TYPE_CHECKING
 
 import os
 
@@ -13,6 +15,9 @@ from acq4.util import Qt
 from acq4.util.Mutex import Mutex
 from acq4.util.debug import printExc
 
+if TYPE_CHECKING:
+    from acq4.Manager import Manager
+
 Ui_MockClampDevGui = Qt.importTemplate('.devTemplate')
 
 ivModes = {'I=0': 'IC', 'VC': 'VC', 'IC': 'IC'}
@@ -21,7 +26,7 @@ modeNames = ['VC', 'I=0', 'IC']
 
 class MockClamp(PatchClamp):
 
-    def __init__(self, dm, config, name):
+    def __init__(self, dm: Manager, config: dict, name: str):
 
         PatchClamp.__init__(self, dm, config, name)
 
@@ -56,7 +61,7 @@ class MockClamp(PatchClamp):
         rsys._setProxyOptions(returnType='proxy')  # need to access remote path by proxy, not by value
         rsys.path.append(os.path.abspath(os.path.dirname(__file__)))
         if config['simulator'] == 'builtin':
-            self.simulator = self.process._import('hhSim')
+            self.simulator = self.process._import('hhSim')    # This is in acq4/devices/MockClamp/hhSim.py
         elif config['simulator'] == 'neuron':
             self.simulator = self.process._import('neuronSim')
 

@@ -16,6 +16,7 @@ from ..Device import DeviceTask
 from ...util.debug import printExc
 
 if typing.TYPE_CHECKING:
+    from acq4.Manager import Manager
     from ...drivers.MultiClamp.multiclamp import MultiClampChannel
 
 
@@ -208,8 +209,13 @@ class MultiClamp(PatchClamp):
         else:
             self.mc.setParam(param, value)
 
-    def deviceInterface(self, win):
-        return MCDeviceGui(self, win)
+    def deviceInterface(self, win: Manager):
+        try:
+            return MCDeviceGui(self, win)
+        except AttributeError:
+            # If MultiClamp is not found, then self.mc will be None, and self.mc.getState() will return
+            # an AttributeError
+            return None
 
     def taskInterface(self, taskRunner):
         return MultiClampTaskGui(self, taskRunner)

@@ -1,5 +1,5 @@
-from __future__ import annotations
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 """
 Manager.py -  Defines main Manager class for ACQ4
 Copyright 2010  Luke Campagnola
@@ -11,6 +11,9 @@ The class is responsible for:
     - Invoking/managing modules
     - Creating and executing acquisition tasks. 
 """
+
+from typing import TYPE_CHECKING
+
 import atexit
 import gc
 import getopt
@@ -313,6 +316,7 @@ class Manager(Qt.QObject):
 
                 ## configure new devices
                 elif key == 'devices':
+                    k: str
                     for k in cfg['devices']:
                         if self.disableAllDevs or k in self.disableDevs:
                             print("    --> Ignoring device '%s' -- disabled by request" % k)
@@ -321,8 +325,8 @@ class Manager(Qt.QObject):
                         print("  === Configuring device '%s' ===" % k)
                         logMsg("  === Configuring device '%s' ===" % k)
                         try:
-                            conf = cfg['devices'][k]
-                            driverName = conf['driver']
+                            conf: dict = cfg['devices'][k]
+                            driverName: str = conf['driver']
                             if 'config' in conf:  # for backward compatibility
                                 conf = conf['config']
                             self.loadDevice(driverName, conf, k)
@@ -332,6 +336,7 @@ class Manager(Qt.QObject):
 
                             mbox = Qt.QMessageBox()
                             mbox.setText(msg)
+                            mbox.setWindowTitle("Error: ")
                             mbox.setStandardButtons(mbox.Ok)
                             mbox.exec_()
 
@@ -450,7 +455,7 @@ class Manager(Qt.QObject):
     def configFileName(self, name):
         return os.path.join(self.configDir, name)
 
-    def loadDevice(self, devClassName, conf, name):
+    def loadDevice(self, devClassName: str, conf: dict, name: str):
         """Create a new instance of a device.
         
         Parameters
@@ -474,7 +479,7 @@ class Manager(Qt.QObject):
         self.devices[name] = dev  # just to prevent device being collected
         return dev
 
-    def getDevice(self, name) -> NiDAQ:
+    def getDevice(self, name: str) -> NiDAQ:
         """Return a device instance given its name.
         """
         name = str(name)
@@ -924,6 +929,7 @@ class DeviceLocker(object):
     def __exit__(self, *args):
         self.unlock()
 
+DEBUG = True
 
 class Task:
     id = 0
@@ -953,7 +959,7 @@ class Task:
 
         ## TODO:  set up data storage with cfg['storeData'] and ['writeLocation']
         # print "Task command", command
-        self.devNames = list(command.keys())
+        self.devNames: list[str] = list(command.keys())
         self.devNames.remove('protocol')
         self.devs = {devName: self.dm.getDevice(devName) for devName in self.devNames}
 
@@ -1142,6 +1148,10 @@ class Task:
                 # By default, timeout occurs 10 sec after requested duration is elapsed.
                 # Set timeout=None to disable the check.
                 timeout = self.cfg.get('timeout', self.cfg['duration'] + 10.0)
+
+                # Disables timeout for debugging purposes
+                if DEBUG:
+                    timeout = None
 
                 now = ptime.time()
                 elapsed = now - self.startTime

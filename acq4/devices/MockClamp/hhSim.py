@@ -143,7 +143,7 @@ def runSim(initState, mode='ic', cmd=None, dt=0.1, dur=100, **args):
     t = np.linspace(0, dur, npts)
     result = np.empty((npts, 9))
     
-    # Run the simulation
+    # Run the simulation (ODE = ordinary differential equation)
     (result[:,2:], info) = scipy.integrate.odeint(hh, initState, t, (mode, cmd, dt),
                                           rtol=1e-6, atol=1e-6, hmax=5e-2,full_output=1, **args)
     result[:,0] = t

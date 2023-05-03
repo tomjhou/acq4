@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+from __future__ import print_function, annotations
 from typing import TYPE_CHECKING
 
 import weakref
@@ -13,6 +13,8 @@ from acq4.util import Qt
 # Needed for type hints. Use of TYPE_CHECKING helps avoid circular import
 if TYPE_CHECKING:
     from acq4.devices.NiDAQ.nidaq import NiDAQ
+    from acq4.devices.MockCamera.mock_camera import MockCamera
+    from acq4.devices.MultiClamp.multiclamp import MultiClamp
 
 
 class InterfaceMixin(object):
@@ -136,7 +138,7 @@ class InterfaceDirectory(Qt.QObject):
                 ints[t] = list(self.typeList.get(t, {}).keys())
             return ints
 
-    def getInterface(self, _type, name) -> 'NiDAQ':
+    def getInterface(self, _type, name) -> NiDAQ | MockCamera | MultiClamp:
         """Return the object that was previously declared with *name* and interface *type*.
 
            TomJ: changed type to _type, to avoid shadowing built-in function
