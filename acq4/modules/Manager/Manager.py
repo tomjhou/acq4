@@ -222,7 +222,16 @@ class Manager(Module):
 
     def loadConfig(self):
         # print "LOAD CONFIG"
-        cfg = str(self.ui.configList.currentItem().text())
+        ci = self.ui.configList.currentItem()
+        if ci is None:
+            mbox = Qt.QMessageBox()
+            mbox.setText("Please select a configuration from the above list.     ")
+            mbox.setStandardButtons(mbox.Ok)
+            mbox.setWindowTitle("Warning:")
+            mbox.exec_()
+            return
+
+        cfg = str(ci.text())
         self.manager.loadDefinedConfig(cfg)
         self.updateModList()
         self.showMessage("Loaded configuration '%s'." % cfg, 10000)

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+from __future__ import print_function, annotations
+
+from typing import  TYPE_CHECKING
 
 import numpy
 import scipy.ndimage
@@ -9,6 +11,11 @@ import acq4.util.Mutex as Mutex
 from acq4.devices.Device import Device, DeviceTask
 from acq4.devices.NiDAQ.taskGUI import NiDAQTask
 from acq4.util.debug import printExc
+
+if TYPE_CHECKING:
+    from acq4 import Manager
+    from acq4.devices.NiDAQ import NiDAQ
+    from acq4.drivers.nidaq.SuperTask import SuperTask
 
 
 class NiDAQ(Device):
@@ -224,16 +231,15 @@ class NiDAQ(Device):
         return d6
 
 class Task(DeviceTask):
-    def __init__(self, dev, cmd, parentTask):
+    def __init__(self, dev: NiDAQ, cmd: dict[str, int], parentTask: Manager.Task):
         DeviceTask.__init__(self, dev, cmd, parentTask)
         self.cmd = cmd
         
         ## get DAQ device
         #daq = self.devm.getDevice(...)
         
-        
         ## Create supertask from nidaq driver
-        self.st = self.dev.n.createSuperTask()
+        self.st: SuperTask = self.dev.n.createSuperTask()
 
     def getChanSampleRate(self, ch):
         """Return the sample rate that will be used for ch"""
@@ -246,7 +252,7 @@ class Task(DeviceTask):
         #defaultAIMode = self.dev.config.get('defaultAIMode', None)
         
         ## Request to all devices that they create the channels they use on this task
-        tasks = self.parentTask().tasks
+        tasks: dict[str, type.Any] = self.parentTask().tasks
         for dName in tasks:
             #print "Requesting %s create channels" % dName
             if hasattr(tasks[dName], 'createChannels'):

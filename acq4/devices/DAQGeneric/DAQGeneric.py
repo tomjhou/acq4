@@ -380,15 +380,20 @@ class DAQGenericTask(DeviceTask):
                 # print "channel", self._DAQCmd[ch]
                 # print "LOW LEVEL:", self._DAQCmd[ch].get('lowLevelConf', {})
                 func = self._DAQCmd[ch].get('lowLevelConf', {})
-                try:
-                    daqTask.addChannel(chConf['channel'], chConf['type'], **func)
+#                try:
+                daqTask.addChannel(chConf['channel'], chConf['type'], **func)
+                """
                 except:
-                    if func.keys()[0] == 'mockFunc':
+                    # This does not work ... causes GUI to freeze
+                    if list(func.keys())[0] == 'mockFunc':
                         mbox = Qt.QMessageBox()
                         mbox.setText("You might have paired a simulated MultiClamp with a real DAQ. If so, please change to simulated DAQ.")
                         mbox.setWindowTitle("Warning: ")
                         mbox.setStandardButtons(mbox.Ok)
                         mbox.exec_()
+                    raise
+                """
+
                 self.daqTasks[ch] = daqTask  ## remember task so we can stop it later on
                 daqTask.setWaveform(chConf['channel'], cmdData)
                 # print "DO task %s has type" % ch, cmdData.dtype

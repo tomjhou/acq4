@@ -701,7 +701,7 @@ class Manager(Qt.QObject):
         """
         with self.lock:
             if self.currentDir is None:
-                raise HelpfulException("Storage directory has not been set.",
+                raise HelpfulException("Storage directory has not been set. Please set it in the Data Manager.",
                                        docs=["userGuide/modules/DataManager.html#acquired-data-storage"])
             return self.currentDir
 

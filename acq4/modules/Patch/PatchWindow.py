@@ -239,6 +239,13 @@ class PatchWindow(Qt.QMainWindow):
             data: MetaArray = self.makeAnalysisArray()
             if data.shape[0] == 0:  ## no data yet; don't start the file
                 self.storageFile = None
+
+                mbox = Qt.QMessageBox()
+                mbox.setText("No data yet, but next sessions will save.  ")
+                mbox.setWindowTitle("Warning:")
+                mbox.setStandardButtons(mbox.Ok)
+                mbox.exec_()
+
                 return
             self.newFile(data)
         else:
