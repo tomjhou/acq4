@@ -1,0 +1,4 @@
+If you click "Start" in the patch module when no DAQ is present, it will produce an infinite number of consecutive errors until you press stop.
+
+When loading protocols, sometimes it fails to set IC or VC because of a case (lower vs upper) error.
+
