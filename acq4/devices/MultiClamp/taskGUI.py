@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+from __future__ import print_function, annotations
 
 import numpy
 import sip
@@ -256,7 +256,9 @@ class MultiClampTaskGui(TaskGui):
             self.mode = 'VC'
         return self.mode
         
-    def setMode(self, mode=None):
+    def setMode(self, mode: str | None = None):
+        if isinstance(mode, str):
+            mode = mode.upper()   # Because stored protocols might use lower-case
         if mode != self.mode:
             oldMode = self.mode
             if mode is None:

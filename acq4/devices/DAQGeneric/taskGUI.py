@@ -85,7 +85,7 @@ class DAQGenericTaskGui(TaskGui):
                 try:
                     self.channels[ch].restoreState(state['channels'][ch])
                 except KeyError:
-                    printExc("Warning: Cannot restore state for channel %s.%s (channel does not exist on this device)" % (self.dev.name(), ch))
+                    printExc("Warning: Cannot restore state for device \"%s\", channel \"%s\" (channel does not exist on this device)" % (self.dev.name(), ch))
                     continue    
         except:
             printExc('Error while restoring GUI state:')

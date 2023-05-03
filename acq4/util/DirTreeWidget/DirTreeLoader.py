@@ -1,11 +1,19 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+from __future__ import print_function, annotations
+
+from typing import TYPE_CHECKING
 
 import six
 
 import acq4.util.DataManager as DataManager
 from acq4.util import Qt
 from acq4.util.debug import printExc
+
+from acq4.util.DirTreeWidget import FileTreeItem
+
+if TYPE_CHECKING:
+    from acq4.util.DataManager import DirHandle
+    from PyQt5.QtWidgets import QTreeWidget
 
 Ui_Form = Qt.importTemplate('.DirTreeTemplate')
 
@@ -38,7 +46,6 @@ class DirTreeLoader(Qt.QWidget):
         self.ui.deleteBtn.clicked.connect(self.deleteClicked)
         self.ui.fileTree.itemDoubleClicked.connect(self.loadClicked)
 
-
     def selectedFile(self):
         return self.ui.fileTree.selectedFile()
 
@@ -55,12 +62,31 @@ class DirTreeLoader(Qt.QWidget):
     def save(self, fileHandle):
         raise Exception("Function must be reimplemented in subclass.")
     
-    def loadClicked(self, item=None, column=0):
-        if item == None or isinstance(item, bool):
+    def loadClicked(self, item: FileTreeItem | bool | None = None, column=0):
+
+        fh: DirHandle
+        if item is None or isinstance(item, bool):
             fh = self.ui.fileTree.selectedFile()
         else:
             fh = self.ui.fileTree.handle(item)
-            
+
+        if fh is None:
+            mbox = Qt.QMessageBox()
+            mbox.setText("Please select a protocol")
+            mbox.setWindowTitle("Warning: ")
+            mbox.setStandardButtons(mbox.Ok)
+            mbox.exec_()
+            return
+
+        if fh.isDir():
+            # This is a directory, not a file.
+            # Should find a way to toggle tree expansion
+            if isinstance(item, FileTreeItem):
+                print(item.isExpanded())
+                item.setExpanded(not item.isExpanded())
+                item.expanded()
+            return
+
         if self.load(fh):
             fn = fh.name(relativeTo=self.baseDir)
             self.setCurrentFile(fh)
