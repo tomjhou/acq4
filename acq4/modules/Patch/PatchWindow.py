@@ -229,7 +229,7 @@ class PatchWindow(Qt.QMainWindow):
         
     def recordClicked(self):
         if self.ui.recordBtn.isChecked():
-            data = self.makeAnalysisArray()
+            data: MetaArray = self.makeAnalysisArray()
             if data.shape[0] == 0:  ## no data yet; don't start the file
                 self.storageFile = None
                 return

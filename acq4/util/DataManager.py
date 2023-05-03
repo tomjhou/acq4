@@ -439,7 +439,7 @@ class FileHandle(Qt.QObject):
 
 
 class DirHandle(FileHandle):
-    def __init__(self, path, manager, create=False):
+    def __init__(self, path: str, manager: DataManager, create: bool = False):
         FileHandle.__init__(self, path, manager)
         self._index = None
         self.lsCache = {}  # sortMode: [files...]
@@ -539,7 +539,7 @@ class DirHandle(FileHandle):
         ret = fileName + ('_%03d' % maxVal) + ext
         return ret
     
-    def mkdir(self, name, autoIncrement=False, info=None):
+    def mkdir(self, name: str, autoIncrement=False, info=None):
         """Create a new subdirectory, return a new DirHandle object. If autoIncrement is true, add a number to the end of the dir name if it already exists."""
         if info is None:
             info = {}

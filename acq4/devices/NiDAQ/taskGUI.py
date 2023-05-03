@@ -57,7 +57,11 @@ class NiDAQTask(TaskGui):
         self.taskRunner.sigTaskChanged.connect(self.taskChanged)
         self.ui.denoiseCombo.currentIndexChanged.connect(self.updateDenoiseCtrl)
         self.ui.filterCombo.currentIndexChanged.connect(self.updateFilterCtrl)
+        # TomJ: The following does NOT update the Period spinner, even though a handler was just connected.
+        # Apparently the ValueChanging callback is only called when value is set via GUI?
         self.ui.rateSpin.setValue(self.rate)
+        # TomJ: need to manually call updater, since it didn't get called above
+        self.updatePeriodSpin()
         self.stateGroup.sigChanged.connect(self.stateChanged)
 
         self.updateDenoiseCtrl()
@@ -151,6 +155,8 @@ class NiDAQTask(TaskGui):
         if nPts != self.nPts:
             self.nPts = nPts
             self.ui.numPtsLabel.setText(str(self.nPts))
+
+            self.ui.timeDurLabel.setText(str(dur) + " sec")
         
     def updateDevList(self):
         ## list all devices

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import re
 import subprocess
@@ -800,7 +802,7 @@ class ErrorDialog(Qt.QDialog):
         self.nextBtn.clicked.connect(self.nextMessage)
         self.logBtn.clicked.connect(self.logClicked)
 
-    def show(self, entry):
+    def show(self, entry: dict[str, type.Any]):
         # rules are:
         #   - Try to show friendly error messages
         #   - If there are any helpfulExceptions, ONLY show those

@@ -1,6 +1,8 @@
 from __future__ import annotations
 from collections import OrderedDict
 
+from typing import TYPE_CHECKING
+
 import gc
 import numpy as np
 import os
@@ -32,6 +34,11 @@ from acq4.devices.NiDAQ.nidaq import NiDAQ
 from acq4.devices.NiDAQ.taskGUI import NiDAQTask
 from acq4.devices.DAQGeneric.DAQGeneric import DAQGeneric
 from acq4.devices.DAQGeneric.taskGUI import DAQGenericTaskGui
+
+if TYPE_CHECKING:
+    from PyQt5.QtWidgets import QListWidgetItem
+    from acq4.Manager import Manager
+
 
 class Window(Qt.QMainWindow):
     def __init__(self, pr):
@@ -82,7 +89,7 @@ class TaskRunner(Module):
     sigTaskStarted = Qt.Signal(object)  ## called at start of EVERY task, including within sequences
     sigTaskChanged = Qt.Signal(object, object)
 
-    def __init__(self, manager, name, config):
+    def __init__(self, manager: Manager, name: str, config: dict[str, str]):
         Module.__init__(self, manager, name, config)
 
         # On systems with low memory, this flag can be set to improve memory usage at the cost of performance.
@@ -92,13 +99,13 @@ class TaskRunner(Module):
 
         self.lastProtoTime = None
         self.loopEnabled = False
-        self.devListItems = {}
+        self.devListItems: dict[str, QListWidgetItem] = {}
 
-        self.docks : dict[str, Qt.QDockWidget] = {}
+        self.docks: dict[str, Qt.QDockWidget] = {}
         self.firstDock = None  # all new docks should stack here
         self.analysisDocks = {}
         self.deleteState = 0
-        self.ui = Ui_MainWindow()
+        self.ui: Ui_MainWindow = Ui_MainWindow()
         self.win = Window(self)
 
         g = self.win.geometry()
@@ -169,11 +176,11 @@ class TaskRunner(Module):
         if param in ['duration', 'cycleTime', 'leadTime']:
             self.updateSeqReport()
 
-    def getDevice(self, dev):
+    def getDevice(self, dev: str):
         """Return the taskGui for dev. Used by some devices to detect changes in others."""
         ## Create or re-enable the device if needed
         try:
-            item = self.ui.deviceList.findItems(dev, Qt.Qt.MatchExactly)[0]
+            item: QListWidgetItem = self.ui.deviceList.findItems(dev, Qt.Qt.MatchExactly)[0]
         except:
             raise Exception('Requested device %s does not exist!' % dev)
         item.setCheckState(Qt.Qt.Checked)
@@ -181,13 +188,13 @@ class TaskRunner(Module):
 
         return self.docks[dev].widget()
 
-    def getParam(self, param):
+    def getParam(self, param: str):
         """Return the value of a named task parameter"""
         return self.protoStateGroup.state()[param]
 
     def updateDeviceList(self, task=None):
         """Update the device list to reflect only the devices that exist in the system or are referenced by the current task. Update the color and checkstate of each item as well."""
-        devList = self.manager.listDevices()
+        devList: list[str] = self.manager.listDevices()
 
         if task is not None:
             protList = list(task.devices.keys())
@@ -228,7 +235,7 @@ class TaskRunner(Module):
             else:
                 self.devListItems[d].setCheckState(Qt.Qt.Unchecked)
 
-    def deviceItemClicked(self, item):
+    def deviceItemClicked(self, item: QListWidgetItem):
         """Respond to clicks in the device list. Add/remove devices from the current task and update docks."""
         name = str(item.text())
         if item.checkState() == Qt.Qt.Unchecked:
@@ -471,7 +478,7 @@ class TaskRunner(Module):
             prof.mark('cleared')
 
             ## Create task object from requested file
-            prot = Task(self, fileName=fn)
+            prot: Task = Task(self, fileName=fn)
             ## Set current task
             self.currentTask = prot
             prof.mark('made task')
@@ -562,7 +569,21 @@ class TaskRunner(Module):
         try:
             if store:
                 if storeDirHandle is None:
-                    storeDirHandle = self.manager.getCurrentDir()
+                    try:
+                        storeDirHandle = self.manager.getCurrentDir()
+                    except HelpfulException:
+
+                        self.setStartBtnsEnable(True)
+                        self.loopEnabled = False
+
+                        mbox = Qt.QMessageBox()
+                        mbox.setText("Storage directory not set. Please set it in the Data Manager module")
+                        mbox.setWindowTitle("Warning:")
+                        mbox.setStandardButtons(mbox.Ok)
+                        mbox.exec_()
+
+                        return None
+
                 name = self.currentTask.name()
                 if name is None:
                     name = 'protocol'
@@ -863,8 +884,8 @@ class TaskRunner(Module):
 
 
 class Task:
-    def __init__(self, ui, fileName=None):
-        self.ui = ui
+    def __init__(self, ui: TaskRunner, fileName: str | None = None):
+        self.ui: TaskRunner = ui
 
         if fileName is not None:
             self.fileName = fileName
@@ -886,7 +907,7 @@ class Task:
             self.fileName = None
             self.enabled = []
             self.conf = {}
-            self.devices = {}
+            self.devices: dict[str, type.Any] = {}
             self.winState = None
 
     def deviceEnabled(self, dev):
@@ -935,7 +956,7 @@ class Task:
         if dev in self.enabled:
             self.enabled.remove(dev)
 
-    def addDevice(self, dev):
+    def addDevice(self, dev: str):
         if dev not in self.devices:
             self.devices[dev] = {}
         if dev not in self.enabled:

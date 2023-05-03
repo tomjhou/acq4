@@ -204,6 +204,13 @@ class Manager(Qt.QObject):
 
         finally:
             if len(self.modules) == 0:
+
+                mbox = Qt.QMessageBox()
+                mbox.setText("No modules found. Are devices (DAQ/MultiClamp/camera) turned on? Also check if MultiClamp Commander is on.      ")
+                mbox.setWindowTitle("Warning:")
+                mbox.setStandardButtons(mbox.Ok)
+                mbox.exec_()
+
                 self.quit()
                 raise Exception("No modules loaded during startup, exiting now.")
 
@@ -746,7 +753,7 @@ class Manager(Qt.QObject):
         with self.lock:
             return self.baseDir
 
-    def setBaseDir(self, d):
+    def setBaseDir(self, d: str | DataManager.DirHandle):
         """
         Set the base directory for data storage. 
         """
