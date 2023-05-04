@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 """
 Manager.py -  Defines main Manager class for ACQ4
 Copyright 2010  Luke Campagnola
@@ -42,8 +45,9 @@ from .util.debug import logExc, logMsg, createLogWindow
 _ = logExc  # prevent cleanup of logExc; needed by debug
 
 # Needed for type hints
-from acq4.devices.NiDAQ.nidaq import NiDAQ
-from acq4.devices.MultiClamp.multiclamp import MultiClamp
+if TYPE_CHECKING:
+    from acq4.devices.NiDAQ.nidaq import NiDAQ
+    from acq4.devices.MultiClamp.multiclamp import MultiClamp
 
 
 def __reload__(old):
@@ -252,7 +256,7 @@ class Manager(Qt.QObject):
         """Read configuration file, create device objects, add devices to list"""
         print("============= Starting Manager configuration from %s =================" % configFile)
         logMsg("Starting Manager configuration from %s" % configFile)
-        cfg = configfile.readConfigFile(configFile)
+        cfg: OrderedDict[str, type.Any] = configfile.readConfigFile(configFile)
         self.config.update(cfg)
 
         ## read modules, devices, and stylesheet out of config
@@ -292,14 +296,14 @@ class Manager(Qt.QObject):
             sys.path.pop(0)
         return globs
 
-    def configure(self, cfg):
+    def configure(self, cfg: OrderedDict[str, type.Any]):
         """Load the devices, modules, stylesheet, and storageDir defined in cfg"""
 
         self._loadConfig(cfg)
 
         self.sigConfigChanged.emit()
 
-    def _loadConfig(self, cfg):
+    def _loadConfig(self, cfg: OrderedDict[str, type.Any]):
         for key, val in cfg.items():
             try:
                 # Handle custom import / exec
@@ -455,7 +459,7 @@ class Manager(Qt.QObject):
     def configFileName(self, name):
         return os.path.join(self.configDir, name)
 
-    def loadDevice(self, devClassName: str, conf: dict, name: str):
+    def loadDevice(self, devClassName: str, conf: OrderedDict, name: str):
         """Create a new instance of a device.
         
         Parameters
@@ -464,7 +468,7 @@ class Manager(Qt.QObject):
             The name of a device class that was registered using acq4.devices.registerDeviceClass().
             See acq4.devices.DEVICE_CLASSES for access to all available device classes.
         conf : dict
-            A structure passed to the device providing configuration options
+            A structure passed to the device providing configuration options, e.g. driver, defaultAIMode, etc.
         name : str
             The name of this device. The instantiated device object will be retrievable using
             ``Manager.getDevice(name)``
