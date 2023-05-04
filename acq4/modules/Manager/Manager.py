@@ -225,7 +225,7 @@ class Manager(Module):
         ci = self.ui.configList.currentItem()
         if ci is None:
             mbox = Qt.QMessageBox()
-            mbox.setText("Please select a configuration from the above list.     ")
+            mbox.setText("No configuration from the above list was selected.     ")
             mbox.setStandardButtons(mbox.Ok)
             mbox.setWindowTitle("Warning:")
             mbox.exec_()

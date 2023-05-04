@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+from __future__ import print_function, annotations
 
 import time
 
@@ -173,12 +173,12 @@ class MockNIDAQ:
 class Task:
     def __init__(self, nd):
         self.nd = nd
-        self.chans = []
-        self.chOpts = []
-        self.clock = None
-        self.nativeClock = None
+        self.chans: list[str] = []
+        self.chOpts: list[dict] = []
+        self.clock: str | None = None
+        self.nativeClock: str | None = None
         self.data = None
-        self.mode = None
+        self.mode: str | None = None
 
     # def __getattr__(self, attr):
     #     return lambda *args: self
