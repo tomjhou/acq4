@@ -1,6 +1,7 @@
 
 
 /.idea/*
+/data_test
 
 
 *.pyc
