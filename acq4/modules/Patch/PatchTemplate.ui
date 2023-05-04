@@ -173,16 +173,6 @@
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QPushButton" name="recordBtn">
-               <property name="text">
-                <string>Record</string>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
             </layout>
            </item>
            <item row="4" column="2">
@@ -291,6 +281,16 @@
               <widget class="QToolButton" name="monitorModeBtn">
                <property name="text">
                 <string>Monitor</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="recordBtn">
+               <property name="text">
+                <string>Record</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
