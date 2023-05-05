@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, annotations
 import six
 
 from pyqtgraph.parametertree.parameterTypes import SimpleParameter, GroupParameter
@@ -22,15 +22,32 @@ class StimParamSet(GroupParameter):
             else:
                 raise Exception('Unknown type %s' % type)
 
-            for ax in self.meta:
-                self.setMeta(ax, self.meta[ax], ch)
+            # for ax in self.meta:
+            #    self.setMeta(ax, self.meta[ax], ch)
 
-    def addChild(self, ch: 'PulseParameter'):
+    def addChild(self, ch: 'GroupParameter'):
         GroupParameter.addChild(self, ch)
         for ax in self.meta:
             self.setMeta(ax, self.meta[ax], ch)
 
-    def setMeta(self, axis: str, opts=None, root=None, **kargs):  ## set units, limits, etc.
+    def printDiagTree(self, item=None, level=0):
+        """
+        TomJ: I made this to help diagnose the bug where Mock stimulation amplitude is always zero.
+        This bug may affect AxoPatch200 also.
+        """
+        if item is None:
+            item = self
+        print('   ' * level, end='')
+        print(item.opts['name'] + ': ' + str(item.opts['value']), end='')
+        if 'axis' in item.opts:
+            print(', axis=' + str(item.opts['axis']))
+        else:
+            print()
+
+        for c in item.childs:
+            self.printDiagTree(c, level+1)
+
+    def setMeta(self, axis: str, opts: dict[str, type.Any] | None = None, root: 'PulseParameter' | None = None, **kargs):  ## set units, limits, etc.
         ## Set meta-properties (units, limits, readonly, etc.) for specific sets of values
         ## axis should be 'x', 'y', or 'xy'
         if opts is None:
@@ -39,6 +56,7 @@ class StimParamSet(GroupParameter):
         if root is None:
             root = self
             self.meta[axis] = opts
+        ch: SeqParameter
         for ch in root:
             if ch.opts.get('axis', None) == axis:   ## set options on any parameter that matches axis
                 ch.setOpts(**opts)
@@ -85,13 +103,13 @@ class SeqParameter(SimpleParameter):
         initialParams = [ch.name() for ch in self]
 
         newParams = [
-            {'name': 'sequence', 'type': 'list', 'value': 'off', 'values': ['off', 'range', 'list']},
-            {'name': 'start', 'type': 'float', 'axis': axis, 'value': 0, 'visible': False},
-            {'name': 'stop', 'type': 'float', 'axis': axis, 'value': 0, 'visible': False},
-            {'name': 'steps', 'type': 'int', 'value': 10, 'visible': False},
-            {'name': 'log spacing', 'type': 'bool', 'value': False, 'visible': False},
-            {'name': 'list', 'type': 'str', 'value': '', 'visible': False},
-            {'name': 'randomize', 'type': 'bool', 'value': False, 'visible': False},
+            {'name': 'sequence',    'type': 'list',  'value': 'off', 'values' : ['off', 'range', 'list']},
+            {'name': 'start',       'type': 'float', 'axis':  axis,  'value'  : 0, 'visible': False},
+            {'name': 'stop',        'type': 'float', 'axis':  axis,  'value'  : 0, 'visible': False},
+            {'name': 'steps',       'type': 'int',   'value': 10,    'visible': False},
+            {'name': 'log spacing', 'type': 'bool',  'value': False, 'visible': False},
+            {'name': 'list',        'type': 'str',   'value': '',    'visible': False},
+            {'name': 'randomize',   'type': 'bool',  'value': False, 'visible': False},
         ]
         for ch in newParams:
             self.addChild(ch)
@@ -99,9 +117,9 @@ class SeqParameter(SimpleParameter):
         #self.sequence.sigTreeStateChanged.connect(self.seqChanged)
 
         self.visibleParams = {  ## list of params to display in each mode
-            'off': initialParams+['sequence'],
+            'off':   initialParams+['sequence'],
             'range': initialParams+['sequence', 'start', 'stop', 'steps', 'log spacing', 'randomize'],
-            'list': initialParams+['sequence', 'list', 'randomize'],
+            'list':  initialParams+['sequence', 'list', 'randomize'],
         }
 
 
@@ -197,11 +215,14 @@ class PulseParameter(GroupParameter):
         GroupParameter.__init__(
             self, removable=True, renamable=True,
             children=[
-                SeqParameter(**{'name': 'start', 'type': 'float', 'axis': 'x', 'value': 0.01, }),
-                SeqParameter(**{'name': 'length', 'type': 'float', 'axis': 'x', 'value': pulseWidth}),
-                SeqParameter(**{'name': 'amplitude', 'type': 'float', 'axis': 'y', 'value': pulseAmpl}),
-                SeqParameter(**{'name': 'sum', 'type': 'float', 'axis': 'xy', 'value': 0, 'limits': (0, None),
-                    'children': [{'name': 'affect', 'type': 'list', 'values': ['length', 'amplitude'], 'value': 'length'}]
+                SeqParameter(**{'name': 'start',     'type': 'float', 'axis': 'x',  'value': 0.01, }),
+                SeqParameter(**{'name': 'length',    'type': 'float', 'axis': 'x',  'value': pulseWidth}),
+                SeqParameter(**{'name': 'amplitude', 'type': 'float', 'axis': 'y',  'value': pulseAmpl}),
+                SeqParameter(**{'name': 'sum',       'type': 'float', 'axis': 'xy', 'value': 0, 'limits': (0, None),
+                    'children': [{'name': 'affect',
+                                  'type': 'list',
+                                  'values': ['length', 'amplitude'],
+                                  'value': 'length'}]
                     }),
             ], **kargs)
         self.param('length').sigValueChanged.connect(self.lenChanged)

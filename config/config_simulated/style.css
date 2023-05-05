@@ -1,11 +1,20 @@
 /* Checkable buttons glow green when they are depressed */
 QPushButton:checked {
     color: #090;
-    border-radius: 3px; 
+    border-radius: 6px; 
     border-color: #090; 
-    border-style: inset; 
-    border-width: 2px; 
+    border-style: inset;
+    border-width: 5px; 
     background: #CCC; 
+}
+
+CustomCheckBox:checked {
+    color: #090;
+    border-radius: 3px;
+    border-color: #090;
+    border-style: inset;
+    border-width: 2px;
+    background: #CCC;
 }
 
 /* Make boundaries between dock widgets more visible. */

@@ -224,11 +224,7 @@ class Manager(Module):
         # print "LOAD CONFIG"
         ci = self.ui.configList.currentItem()
         if ci is None:
-            mbox = Qt.QMessageBox()
-            mbox.setText("No configuration from the above list was selected.     ")
-            mbox.setStandardButtons(mbox.Ok)
-            mbox.setWindowTitle("Warning:")
-            mbox.exec_()
+            Qt.ShowMessage("No configuration from the above list was selected.     ")
             return
 
         cfg = str(ci.text())

@@ -576,11 +576,7 @@ class TaskRunner(Module):
                         self.setStartBtnsEnable(True)
                         self.loopEnabled = False
 
-                        mbox = Qt.QMessageBox()
-                        mbox.setText("Storage directory not set. Please set it in the Data Manager module")
-                        mbox.setWindowTitle("Warning:")
-                        mbox.setStandardButtons(mbox.Ok)
-                        mbox.exec_()
+                        Qt.ShowMessage("Storage directory not set. Please set it in the Data Manager module")
 
                         return None
 

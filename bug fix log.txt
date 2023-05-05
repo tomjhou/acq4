@@ -1,0 +1,15 @@
+1. If you click "Start" in the patch module when no DAQ is present, it will produce an infinite number of consecutive errors until you press stop.
+
+2. When loading protocols, sometimes it fails to set IC or VC because of a case (lower vs upper) error.
+   Fixed on 5/3/2023
+
+3. Stimulus amplitude is always zero in MockClamp and AxoPatch200. This is due to the following lines:
+    a. MockClamp.py, line 361: self.cmdWidget.setMeta('y', minStep=scale, step=scale * 10, value=0.)
+    b. AxoPatch200.py, line 564: self.cmdWidget.setMeta('y', minStep=scale, step=scale * 10, value=0.)
+   The "value=0." part causes meta data to override stimulus amplitude (which also uses 'value' key).
+   I can see no obvious reason for this, and have removed that part, which seems to fix it.
+   But since it occurs twice, I can't help but think I am missing some reason for it to be there.
+
+4.
+
+

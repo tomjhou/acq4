@@ -285,7 +285,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="recordBtn">
+              <widget class="CustomCheckBox" name="recordBtn">
                <property name="text">
                 <string>Record</string>
                </property>
@@ -635,6 +635,16 @@
    <extends>QWidget</extends>
    <header>pyqtgraph</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CustomCheckBox</class>
+   <extends>QCheckBox</extends>
+   <header>..Patch.CustomPatchCheckBox</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomCheckBox2</class>
+   <extends>QCheckBox</extends>
+   <header location="global">pyqtgraph.Qt.QtWidgets</header>
   </customwidget>
  </customwidgets>
  <resources/>

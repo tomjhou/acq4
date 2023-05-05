@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+from __future__ import print_function, annotations
+
+from typing import TYPE_CHECKING
 
 import os
+import subprocess
 
 from acq4.util import Qt
 from acq4.util.debug import printExc
 from six.moves import range
 
+if TYPE_CHECKING:
+    from acq4.util.DataManager import DirHandle
+    from PyQt5.QtWidgets import QTreeWidgetItem
 
 class DirTreeWidget(Qt.QTreeWidget):
 
@@ -142,7 +148,7 @@ class DirTreeWidget(Qt.QTreeWidget):
         finally:
             item.setText(0, handle.shortName())
 
-    def setBaseDirHandle(self, d):
+    def setBaseDirHandle(self, d: DirHandle):
         #print "set base", d.name()
         if self.baseDir is not None:
             self.unwatch(self.baseDir)
@@ -158,7 +164,12 @@ class DirTreeWidget(Qt.QTreeWidget):
             self.items = {self.baseDir: self.invisibleRootItem()}
         self.clear()
         if d is not None:
-            self.rebuildChildren(self.invisibleRootItem())
+            # TomJ: Root directory does not show unless we explicitly add it.
+            it = FileTreeItem(d, self.checkState, self.allowMove, self.allowRename)
+            self.invisibleRootItem().insertChild(0, it)
+
+            # Now add the rest of the file structure
+            self.rebuildChildren(it)   # self.invisibleRootItem())
         #self.rebuildTree()
 
     def baseDirHandle(self):
@@ -248,11 +259,11 @@ class DirTreeWidget(Qt.QTreeWidget):
         #del self.handles[item]
         self.unwatch(handle)
 
-    def rebuildChildren(self, root):
+    def rebuildChildren(self, root: QTreeWidgetItem):
         """Make sure all children are present and in the correct order"""
-        scroll = self.verticalScrollBar().value()
-        handle = self.handle(root)
-        files = handle.ls(sortMode=self.sortMode)
+        scroll: int = self.verticalScrollBar().value()
+        handle: DirHandle = self.handle(root)
+        files: list[str] = handle.ls(sortMode=self.sortMode)
         handles = [handle[f] for f in files]
         i = 0
         while True:
@@ -264,7 +275,7 @@ class DirTreeWidget(Qt.QTreeWidget):
 
             h = handles[i]
             if (i >= root.childCount()) or (h not in self.items) or (h is not self.handle(root.child(i))):
-                item = self.item(h, create=True)
+                item: FileTreeItem = self.item(h, create=True)
                 parent = self.itemParent(item)
                 if parent is not None:
                     parent.removeChild(item)
@@ -310,7 +321,11 @@ class DirTreeWidget(Qt.QTreeWidget):
         self.clearTree(root)
         if handle is None:
             return
-        
+
+        # TomJ: Root directory does not show unless we explicitly add it.
+        it = FileTreeItem(handle, self.checkState, self.allowMove, self.allowRename)
+        self.invisibleRootItem().insertChild(0, it)
+
         for f in handle.ls(useCache=useCache):
             #print "Add handle", f
             try:
@@ -380,13 +395,16 @@ class DirTreeWidget(Qt.QTreeWidget):
         if item is None:
             return
         self.menu = Qt.QMenu(self)
-        act = self.menu.addAction('refresh', self.refreshClicked)
+        act = self.menu.addAction('Refresh', self.refreshClicked)
+        act = self.menu.addAction('Open in Explorer', self.openExplorerClicked)
         self.contextItem = item
         self.menu.popup(ev.globalPos())
         
     def refreshClicked(self):
         self.rebuildTree(self.contextItem, useCache=False)
 
+    def openExplorerClicked(self):
+        subprocess.Popen('explorer "' + str(self.baseDir) + '"')
 
 class FileTreeItem(Qt.QTreeWidgetItem):
     def __init__(self, handle, checkState=None, allowMove=True, allowRename=True):

@@ -358,7 +358,9 @@ class MockClampTaskGui(DAQGenericTaskGui):
 
         self.inputWidget.setUnits(inpUnits)
         self.cmdWidget.setUnits(cmdUnits)
-        self.cmdWidget.setMeta('y', minStep=scale, step=scale * 10, value=0.)
+        # TomJ: The last value=0. part causes stimulus amplitude to always be zero. Am removing for now.
+        # Should contact developer about this.
+        self.cmdWidget.setMeta('y', minStep=scale, step=scale * 10)  # , value=0.)
         self.inputPlot.setLabel('left', units=inpUnits)
         self.cmdPlot.setLabel('left', units=cmdUnits)
         # w.setScale(scale)

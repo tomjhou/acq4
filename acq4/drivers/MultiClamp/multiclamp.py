@@ -8,7 +8,9 @@ import os
 import sys
 import threading
 
-import PyQt5.QtWidgets as Qt
+# This is only used for warning message about Commander window
+from acq4.util import Qt
+
 from typing import Dict, Any, Callable
 
 from acq4.drivers.MultiClamp.MultiClampTelegraph import wmlib, MultiClampTelegraph
@@ -417,12 +419,7 @@ class MultiClamp:
             exc: Exception = sys.exc_info()[1]
 
             if "MULTICLAMP COMMANDER IS NOT OPEN" in exc.args[1].upper():
-                msg3 = 'MultiClamp Commander is not open. Will not be able to communicate with MultiClamp device.'
-                mbox = Qt.QMessageBox()
-                mbox.setText(msg3)
-                mbox.setWindowTitle("ERROR:")
-                mbox.setStandardButtons(mbox.Ok)
-                mbox.exec_()
+                Qt.ShowMessage('MultiClamp Commander is not open. Will not be able to communicate with MultiClamp device.')
 
             if exc.args[0] == 6000:  ## We have reached the end of the device list
                 return None

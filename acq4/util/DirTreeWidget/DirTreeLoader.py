@@ -71,11 +71,7 @@ class DirTreeLoader(Qt.QWidget):
             fh = self.ui.fileTree.handle(item)
 
         if fh is None:
-            mbox = Qt.QMessageBox()
-            mbox.setText("Please select a protocol")
-            mbox.setWindowTitle("Warning: ")
-            mbox.setStandardButtons(mbox.Ok)
-            mbox.exec_()
+            Qt.ShowMessage("Please select a protocol")
             return
 
         if fh.isDir():

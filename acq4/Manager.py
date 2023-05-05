@@ -212,11 +212,7 @@ class Manager(Qt.QObject):
         finally:
             if len(self.modules) == 0:
 
-                mbox = Qt.QMessageBox()
-                mbox.setText("No modules found. Are devices (DAQ/MultiClamp/camera) turned on? Also check if MultiClamp Commander is on.      ")
-                mbox.setWindowTitle("Warning:")
-                mbox.setStandardButtons(mbox.Ok)
-                mbox.exec_()
+                Qt.ShowMessage("No modules found. Are devices (DAQ/MultiClamp/camera) turned on? Also check if MultiClamp Commander is on.")
 
                 self.quit()
                 raise Exception("No modules loaded during startup, exiting now.")
@@ -336,13 +332,7 @@ class Manager(Qt.QObject):
                             self.loadDevice(driverName, conf, k)
                         except:
 
-                            msg = "Error configuring device %s:" % k
-
-                            mbox = Qt.QMessageBox()
-                            mbox.setText(msg)
-                            mbox.setWindowTitle("Error: ")
-                            mbox.setStandardButtons(mbox.Ok)
-                            mbox.exec_()
+                            Qt.ShowMessage("Error configuring device %s:" % k)
 
                             printExc()
                             if self.exitOnError:

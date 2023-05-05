@@ -20,6 +20,14 @@ for mod in [pg.Qt, pg.Qt.QtGui, pg.Qt.QtCore, pg.Qt.QtTest, pg.Qt.QtWidgets]:
 disconnect = pg.disconnect
 
 
+def ShowMessage(msg: str, title:str = 'Warning:'):
+    mbox = QMessageBox()
+    mbox.setText(msg + "    ")
+    mbox.setWindowTitle(title)
+    mbox.setStandardButtons(mbox.Ok)
+    mbox.exec_()
+
+
 def loadUiType(uiFile, package=None):
     if QT_LIB == PYQT5:
         from PyQt5 import uic

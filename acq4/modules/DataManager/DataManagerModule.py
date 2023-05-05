@@ -90,8 +90,8 @@ class DataManager(Module):
         self.ui.newFolderList.addItems(['New...', 'Folder'] + list(conf.keys()))
 
     def baseDirChanged(self):
-        dh = self.manager.getBaseDir()
-        self.baseDir = dh
+        dh: DirHandle = self.manager.getBaseDir()
+        self.baseDir: DirHandle = dh
         if dh is None:
             self.ui.baseDirText.setText('')
         else:
@@ -108,18 +108,31 @@ class DataManager(Module):
 
     def setLogDir(self):
         d = self.selectedFile()
+
+        if d is None:
+            Qt.ShowMessage("Please select file or folder from tree list below.")
+            return
+
         if not isinstance(d, DirHandle):
             d = d.parent()
         self.manager.setLogDir(d)
 
     def updateLogDir(self, d):
-        self.ui.logDirText.setText(d.name(relativeTo=self.baseDir))
+        dirName = d.name(relativeTo=self.baseDir)
+
+        if dirName == '':
+            # TomJ: I added this because I personally find a blank field to be confusing ...
+            # ... it seems to imply NO defined directory, versus the root folder.
+            self.ui.logDirText.setText('<root>')
+        else:
+            self.ui.logDirText.setText()
 
     def setCurrentClicked(self):
         # print "click"
         handle = self.selectedFile()
         if handle is None:
             # print "no selection"
+            Qt.ShowMessage("Please select file or folder from tree list below.")
             return
         if not handle.isDir():
             handle = handle.parent()
@@ -134,7 +147,14 @@ class DataManager(Module):
                 dirName = ""
             else:
                 dirName = newDir.name(relativeTo=self.baseDir)
-            self.ui.currentDirText.setText(str(dirName))
+
+            if dirName == '':
+                # TomJ: I added this because I personally find a blank field to be confusing ...
+                # ... it is unclear whether it means there is NO defined storage directory, versus
+                # the reality which is that the storage directory is simply the root folder.
+                self.ui.currentDirText.setText('<root>')
+            else:
+                self.ui.currentDirText.setText(str(dirName))
             self.ui.fileTreeWidget.setCurrentDir(newDir)
         elif change == 'log':
             self.updateLogView(*args)
