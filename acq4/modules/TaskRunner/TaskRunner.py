@@ -44,7 +44,7 @@ if TYPE_CHECKING:
 
 
 class Window(Qt.QMainWindow):
-    def __init__(self, pr):
+    def __init__(self, pr: 'TaskRunner'):
         Qt.QMainWindow.__init__(self)
         mp = os.path.dirname(__file__)
         self.setWindowIcon(Qt.QIcon(os.path.join(mp, 'icon.png')))
@@ -56,7 +56,25 @@ class Window(Qt.QMainWindow):
             geom = Qt.QRect(*uiState['geometry'])
             self.setGeometry(geom)
 
-    def closeEvent(self, ev):
+        self.have_unsaved_changes = False
+
+    def register_changes(self):
+        self.have_unsaved_changes = True
+
+    def closeEvent(self, event):
+
+#        if not self.have_unsaved_changes:
+#            return self.do_closeEvent(event)
+        reply = Qt.ShowYesNoMessage("Closing will discard any unsaved changes. Close anyway?")
+
+        if reply:
+            self.do_closeEvent(event)
+#            event.accept()
+        else:
+            event.ignore()
+
+    def do_closeEvent(self, ev):
+        print("event")
         geom = self.geometry()
         uiState = {'geometry': [geom.x(), geom.y(), geom.width(), geom.height()]}
         getManager().writeConfigFile(uiState, self.stateFile)
@@ -114,10 +132,8 @@ class TaskRunner(Module):
         g = self.win.geometry()
         self.ui.setupUi(self.win)
 
-        for x in inspect.getmembers(self.ui):
-            # Prevent SpinBox objects from shrinking
-            if isinstance(x[1], pg.SpinBox):
-                x[1].setOpts(compactHeight=False)
+        # Prevent SpinBox GUI objects from getting squashed vertically.
+        Qt.FixSpinBox(self.ui)
 
         self.win.setGeometry(g)
         self.win.setStatusBar(StatusBar())

@@ -195,6 +195,22 @@
               </widget>
              </item>
              <item>
+              <spacer name="horizontalSpacer_2">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Fixed</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
               <widget class="CustomCheckBox" name="recordBtn">
                <property name="text">
                 <string>Record</string>
@@ -246,7 +262,7 @@
             </widget>
            </item>
            <item row="0" column="0" colspan="3">
-            <widget class="QWidget" name="" native="true">
+            <widget class="QWidget" name="widget" native="true">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -671,11 +687,6 @@
    <class>SpinBox</class>
    <extends>QDoubleSpinBox</extends>
    <header>pyqtgraph</header>
-  </customwidget>
-  <customwidget>
-   <class>CustomSpinBox</class>
-   <extends>QDoubleSpinBox</extends>
-   <header>..Patch.CustomSpinBox</header>
   </customwidget>
   <customwidget>
    <class>PlotWidget</class>

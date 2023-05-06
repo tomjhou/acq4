@@ -16,9 +16,9 @@ class StimParamSet(GroupParameter):
         with self.treeChangeBlocker():  ## about to make lots of tree changes;
                                         ## suppress change signal until we're done.
             if type == 'Pulse':
-                ch = self.addChild(PulseParameter(pulseWidth=0.01, pulseAmpl=0.2))
+                ch = self.addChild(PulseParameter(pulseWidth=0.01, pulseAmpl=0.005))
             elif type == 'Pulse Train':
-                ch = self.addChild(PulseTrainParameter(pulsePeriod=.025, pulseAmpl=0.05, ))
+                ch = self.addChild(PulseTrainParameter(pulsePeriod=.025, pulseAmpl=0.001, ))
             else:
                 raise Exception('Unknown type %s' % type)
 

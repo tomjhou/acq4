@@ -109,6 +109,15 @@ class DaqChannelGui(Qt.QWidget):
     def taskSequenceStarted(self):
         pass
 
+    def setAutoScale(self):
+        """
+        Set whether axes are auto-scaled, based on checkbox state.
+        """
+        if hasattr(self.ui, 'checkBoxAutoScaleAxes') and self.ui.checkBoxAutoScaleAxes.isChecked():
+            self.plot.enableAutoRange()
+        else:
+            self.plot.enableAutoRange(x=False, y=False)
+
     def quit(self):
         # print "quit DAQGeneric channel", self.name
         self.plot.close()
@@ -130,6 +139,10 @@ class OutputChannelGui(DaqChannelGui):
         else:
             raise Exception("Unrecognized channel type '%s'" % self.config['type'])
         self.ui.setupUi(self)
+
+        # Prevent SpinBox GUI objects from getting squashed vertically.
+        Qt.FixSpinBox(self.ui)
+
         self.postUiInit()
 
         self.daqChanged(self.daqUI.currentState())
@@ -149,6 +162,8 @@ class OutputChannelGui(DaqChannelGui):
 
         self.holdingCheckChanged()
         self.ui.functionCheck.setChecked(True)
+
+        self.ui.checkBoxAutoScaleAxes.stateChanged.connect(self.setAutoScale)
 
     def getSpins(self):
         return (self.ui.preSetSpin, self.ui.holdingSpin)
@@ -231,7 +246,7 @@ class OutputChannelGui(DaqChannelGui):
                     list(params.keys()))  ## appends waveforms for the entire parameter space to waves
 
         autoRange = self.plot.getViewBox().autoRangeEnabled()
-        self.plot.enableAutoRange(x=False, y=False)
+        # self.plot.enableAutoRange(x=False, y=False)
         try:
             for w in waves:
                 if w is not None:
@@ -244,7 +259,7 @@ class OutputChannelGui(DaqChannelGui):
                 # self.ui.functionCheck.setChecked(True)
                 self.plotCurve(single, color=Qt.QColor(200, 100, 100))
         finally:
-            self.plot.enableAutoRange(x=autoRange[0], y=autoRange[1])
+            self.plot.enableAutoRange(x=autoRange[0], y=autoRange[1])  # Restore previous auto-range state
 
         self.sigDataChanged.emit(self)
 
@@ -261,6 +276,7 @@ class OutputChannelGui(DaqChannelGui):
             self.currentPlot.setZValue(100)
 
     def plotCurve(self, data, color=Qt.QColor(100, 100, 100), replot=True):
+        self.setAutoScale()
         plot = self.plot.plot(y=data, x=self.timeVals, pen=mkPen(color))
         return plot
 
@@ -322,6 +338,7 @@ class InputChannelGui(DaqChannelGui):
         self.ui.setupUi(self)
         self.postUiInit()
         self.clearBeforeNextPlot = False
+        self.ui.checkBoxAutoScaleAxes.stateChanged.connect(self.setAutoScale)
 
     def taskSequenceStarted(self):
         self.clearBeforeNextPlot = True
@@ -338,6 +355,8 @@ class InputChannelGui(DaqChannelGui):
             if self.clearBeforeNextPlot:
                 self.clearPlots()
                 self.clearBeforeNextPlot = False
+
+            self.setAutoScale()
 
             plot = self.plot.plot(
                 y=result.view(numpy.ndarray),

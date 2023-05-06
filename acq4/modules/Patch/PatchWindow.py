@@ -84,9 +84,7 @@ class PatchWindow(Qt.QMainWindow):
         self.ui.setupUi(self.cw)
 
         # Prevent SpinBox GUI objects from getting squashed vertically.
-        for x in inspect.getmembers(self.ui):
-            if isinstance(x[1], SpinBox):
-                x[1].setOpts(compactHeight=False)
+        Qt.FixSpinBox(self.ui)
 
         #self.logBtn = LogButton("Log")
         #self.statusBar().addPermanentWidget(self.logBtn)
@@ -112,7 +110,7 @@ class PatchWindow(Qt.QMainWindow):
             p.plotItem.setAxisItems({'left': yax})
             p.setLabel('left', text=k, units=self.analysisItems[k])
             vb: ViewBox = p.plotItem.getViewBox()
-            # vb.enableAutoRange(y=True)
+            # vb.enableAutoRange(y=True)   # This is not great - it causes trace to entirely fill the y-range.
 
             self.ui.plotLayout.addWidget(p)
             self.plots[k] = p
@@ -303,6 +301,11 @@ class PatchWindow(Qt.QMainWindow):
                 self.ui.commandPlot.setLabel('left', units='V')
             else:
                 self.ui.commandPlot.setLabel('left', units='A')
+
+        if self.ui.checkBoxAutoScaleAxes.isChecked():
+            self.ui.patchPlot.enableAutoRange()
+            self.ui.commandPlot.enableAutoRange()
+
         prof.mark('3')
         #self.ui.patchPlot.replot()
         #self.ui.commandPlot.replot()

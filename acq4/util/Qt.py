@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 import os
 import sys
+import inspect
 
 import pyqtgraph as pg
 
@@ -39,6 +40,18 @@ def ShowMessage(msg: str, title:str = 'Warning:'):
     mbox.setWindowTitle(title)
     mbox.setStandardButtons(mbox.Ok)
     mbox.exec_()
+
+
+def ShowYesNoMessage(msg: str, title: str='Are you sure?'):
+    mbox = QMessageBox()
+    return mbox.question(None, title, msg, mbox.Yes | mbox.No) == mbox.Yes
+
+
+def FixSpinBox(ui):
+    # Prevent SpinBox GUI objects from getting squashed vertically.
+    for x in inspect.getmembers(ui):
+        if isinstance(x[1], pg.SpinBox):
+            x[1].setOpts(compactHeight=False)
 
 
 def loadUiType(uiFile, package=None):

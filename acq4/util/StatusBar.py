@@ -16,7 +16,7 @@ class StatusBar(Qt.QStatusBar):
         btn.setFixedWidth(70)
         
         self.addPermanentWidget(btn)
-        self.setFixedHeight(btn.height())
-        self.layout().setSpacing(0)
+        self.setFixedHeight(btn.height() + 10)
+        self.layout().setSpacing(5)
 
     
