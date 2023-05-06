@@ -1,9 +1,22 @@
 """Wrapper around Qt libraries to make it easier to swap out backends in the future
 """
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import os
 import sys
 
 import pyqtgraph as pg
+
+if TYPE_CHECKING:
+    # This is something of a hack so that type hints will work everywhere else
+    from pyqtgraph.Qt import *
+    from pyqtgraph.Qt import _StringIO
+    from PyQt5 import QtWidgets
+    from PyQt5.QtWidgets import *
+    from PyQt5.QtCore import *
+    from PyQt5.QtGui import *
 
 # make one large namespace containing everything; pyqtgraph handles translation
 # between different Qt versions

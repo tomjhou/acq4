@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import os
+import subprocess
 import time
 
 import six
@@ -123,7 +124,7 @@ class DataManager(Module):
         if dirName == '':
             # TomJ: I added this because I personally find a blank field to be confusing ...
             # ... it seems to imply NO defined directory, versus the root folder.
-            self.ui.logDirText.setText('<root>')
+            self.ui.logDirText.setText('<top-level>')
         else:
             self.ui.logDirText.setText()
 
@@ -152,7 +153,7 @@ class DataManager(Module):
                 # TomJ: I added this because I personally find a blank field to be confusing ...
                 # ... it is unclear whether it means there is NO defined storage directory, versus
                 # the reality which is that the storage directory is simply the root folder.
-                self.ui.currentDirText.setText('<root>')
+                self.ui.currentDirText.setText('<top-level>')
             else:
                 self.ui.currentDirText.setText(str(dirName))
             self.ui.fileTreeWidget.setCurrentDir(newDir)

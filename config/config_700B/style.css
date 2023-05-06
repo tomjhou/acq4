@@ -1,10 +1,10 @@
 /* Checkable buttons glow green when they are depressed */
 QPushButton:checked {
     color: #090;
-    border-radius: 3px; 
+    border-radius: 5px;
     border-color: #090; 
     border-style: inset; 
-    border-width: 2px; 
+    border-width: 5px;
     background: #CCC; 
 }
 

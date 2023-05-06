@@ -23,6 +23,8 @@ class DirTreeWidget(Qt.QTreeWidget):
 
     def __init__(self, parent=None, baseDirHandle=None, checkState=None, allowMove=True, allowRename=True, sortMode='date'):
         Qt.QTreeWidget.__init__(self, parent)
+        self.contextItem = None
+        self.menu = None
         self.baseDir = None
         self.checkState = checkState
         self.allowMove = allowMove
@@ -169,8 +171,7 @@ class DirTreeWidget(Qt.QTreeWidget):
             self.invisibleRootItem().insertChild(0, it)
 
             # Now add the rest of the file structure
-            self.rebuildChildren(it)   # self.invisibleRootItem())
-        #self.rebuildTree()
+            self.rebuildChildren(it)
 
     def baseDirHandle(self):
         return self.baseDir
@@ -264,24 +265,20 @@ class DirTreeWidget(Qt.QTreeWidget):
         scroll: int = self.verticalScrollBar().value()
         handle: DirHandle = self.handle(root)
         files: list[str] = handle.ls(sortMode=self.sortMode)
-        handles = [handle[f] for f in files]
-        i = 0
-        while True:
-            if i >= len(handles):
-                ##  no more handles; remainder of items should be removed
-                while root.childCount() > i:
-                    ch = root.takeChild(i)
-                break
 
-            h = handles[i]
-            if (i >= root.childCount()) or (h not in self.items) or (h is not self.handle(root.child(i))):
-                item: FileTreeItem = self.item(h, create=True)
-                parent = self.itemParent(item)
-                if parent is not None:
-                    parent.removeChild(item)
-                root.insertChild(i, item)
-                item.recallExpand()
-            i += 1
+        self.clearTree(root)
+
+        for f in files:
+
+            try:
+                item: FileTreeItem = self.item(handle[f], create=True)
+            except:
+                printExc("Error getting file handle:")
+                continue
+
+            root.addChild(item)
+            item.recallExpand()
+
         self.verticalScrollBar().setValue(scroll)
 
     def itemParent(self,  item):
@@ -325,16 +322,7 @@ class DirTreeWidget(Qt.QTreeWidget):
         # TomJ: Root directory does not show unless we explicitly add it.
         it = FileTreeItem(handle, self.checkState, self.allowMove, self.allowRename)
         self.invisibleRootItem().insertChild(0, it)
-
-        for f in handle.ls(useCache=useCache):
-            #print "Add handle", f
-            try:
-                childHandle = handle[f]
-            except:
-                printExc("Error getting file handle:")
-                continue
-            item = self.addHandle(childHandle)
-            root.addChild(item)
+        self.rebuildChildren(it)
 
     def clearTree(self, root):
         while root.childCount() > 0:
@@ -396,7 +384,7 @@ class DirTreeWidget(Qt.QTreeWidget):
             return
         self.menu = Qt.QMenu(self)
         act = self.menu.addAction('Refresh', self.refreshClicked)
-        act = self.menu.addAction('Open in Explorer', self.openExplorerClicked)
+        act = self.menu.addAction('Open in Windows Explorer/App', self.openExplorerClicked)
         self.contextItem = item
         self.menu.popup(ev.globalPos())
         
@@ -404,7 +392,20 @@ class DirTreeWidget(Qt.QTreeWidget):
         self.rebuildTree(self.contextItem, useCache=False)
 
     def openExplorerClicked(self):
-        subprocess.Popen('explorer "' + str(self.baseDir) + '"')
+
+        item = self.selectedItems()
+        if len(item) > 0:
+            item = item[0]
+        else:
+            Qt.ShowMessage("No file/folder selected")
+            return
+
+        try:
+            subprocess.Popen('explorer "' + item.handle.path + '"')
+        except:
+            Qt.ShowMessage("Error opening folder")
+            pass
+
 
 class FileTreeItem(Qt.QTreeWidgetItem):
     def __init__(self, handle, checkState=None, allowMove=True, allowRename=True):

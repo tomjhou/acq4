@@ -17,13 +17,16 @@ from acq4.util.Mutex import Mutex
 from acq4.util.StatusBar import StatusBar
 from acq4.util.Thread import Thread
 from acq4.util.debug import printExc
-from pyqtgraph import PlotWidget, mkPen
+from pyqtgraph import PlotWidget, mkPen, AxisItem
 from pyqtgraph import WidgetGroup
 from pyqtgraph import siFormat
 from pyqtgraph.debug import Profiler
 
+from .CustomAxisItem import CustomAxisItem
+
 if TYPE_CHECKING:
     from acq4.Manager import Task
+    from pyqtgraph.graphicsItems import ViewBox
 
 Ui_Form = Qt.importTemplate('.PatchTemplate')
 
@@ -98,7 +101,12 @@ class PatchWindow(Qt.QMainWindow):
         self.plots = {}
         for k in self.analysisItems:
             p = PlotWidget()
+            yax = CustomAxisItem('left')
+            p.plotItem.setAxisItems({'left': yax})
             p.setLabel('left', text=k, units=self.analysisItems[k])
+            vb: ViewBox = p.plotItem.getViewBox()
+            # vb.enableAutoRange(y=True)
+
             self.ui.plotLayout.addWidget(p)
             self.plots[k] = p
         irp = self.plots['inputResistance']
@@ -374,14 +382,40 @@ class PatchWindow(Qt.QMainWindow):
                     raise
                 
         return data
-            
-            
-        
+
     def updateAnalysisPlots(self):
         for n in self.analysisItems:
             p = self.plots[n]
             if p.isVisible():
-                self.analysisCurves[n].setData(self.analysisData['time'], self.analysisData[n])
+                dat = self.analysisData[n]
+                self.analysisCurves[n].setData(self.analysisData['time'], dat)
+
+                if self.ui.checkBoxAutoScaleAxes.isChecked():
+                    vb: ViewBox = p.plotItem.getViewBox()
+                    # x-autoscale is on by default, but might inadvertently get turned off
+                    # if user uses mouse scroll on x-axis
+                    vb.enableAutoRange(x=True)
+
+                    # Not needed
+                    yax: CustomAxisItem = p.getAxis('left')
+
+                    if len(dat) > 0:
+                        # Now auto-scale y
+                        islog = yax.logMode
+                        y_min = np.log10(np.min(dat)) - 0.1 if islog else np.min(dat)
+                        if not np.isfinite(y_min):
+                            y_min = 5 if islog else 0
+                        y_max = np.log10(np.max(dat)) + 0.1 if islog else np.max(dat)
+                        if not np.isfinite(y_max):
+                            y_max = 11 if islog else 1000000000
+
+                        if y_min == y_max:
+                            # If y_min == y_max, then setYRange is unpredictable. It is supposed to
+                            # preserve previous range, but that is sometimes enormous (10^27). So just
+                            # avoid this situation.
+                            y_min -= 0.5
+                            y_max += 0.5
+                        p.setYRange(y_min, y_max, 0.5)  # Last value is padding, which specifies margin as a fraction of max-min
                 #if len(self.analysisData[n+'Std']) > 0:
                     #self.analysisCurves[p+'Std'].setData(self.analysisData['time'], self.analysisData[n+'Std'])
                 #p.replot()
