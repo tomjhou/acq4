@@ -3,7 +3,9 @@ from __future__ import print_function, annotations
 
 import numpy
 import sip
-from pyqtgraph import mkPen, disconnect
+import inspect
+
+from pyqtgraph import mkPen, disconnect, SpinBox
 
 from acq4.devices.Device import TaskGui
 from pyqtgraph.WidgetGroup import WidgetGroup
@@ -31,7 +33,12 @@ class MultiClampTaskGui(TaskGui):
         
         self.ui = Ui_Form()
         self.ui.setupUi(self)
-        
+
+        # Prevent SpinBox GUI objects from getting squashed vertically.
+        for x in inspect.getmembers(self.ui):
+            if isinstance(x[1], SpinBox):
+                x[1].setOpts(compactHeight=False)
+
         self.ui.splitter_2.setStretchFactor(0, 0)
         self.ui.splitter_2.setStretchFactor(1, 1)
         self.ui.splitter.setStretchFactor(0, 3)

@@ -158,65 +158,6 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="2">
-            <widget class="SpinBox" name="icPulseSpin">
-             <property name="suffix">
-              <string>A</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="2">
-            <widget class="SpinBox" name="pulseTimeSpin">
-             <property name="suffix">
-              <string>s</string>
-             </property>
-             <property name="singleStep">
-              <double>1.000000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="2">
-            <widget class="SpinBox" name="delayTimeSpin">
-             <property name="suffix">
-              <string>s</string>
-             </property>
-             <property name="minimum">
-              <double>1.000000000000000</double>
-             </property>
-             <property name="maximum">
-              <double>10000.000000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>1.000000000000000</double>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="2" rowspan="2">
-            <widget class="SpinBox" name="icHoldSpin">
-             <property name="suffix">
-              <string>A</string>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="2">
-            <widget class="SpinBox" name="cycleTimeSpin">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="suffix">
-              <string>s</string>
-             </property>
-             <property name="singleStep">
-              <double>1.000000000000000</double>
-             </property>
-             <property name="value">
-              <double>0.200000000000000</double>
-             </property>
-            </widget>
-           </item>
            <item row="1" column="0" colspan="3">
             <layout class="QHBoxLayout" name="horizontalLayout_2">
              <property name="spacing">
@@ -353,6 +294,65 @@
              </layout>
             </widget>
            </item>
+           <item row="10" column="2">
+            <widget class="SpinBox" name="cycleTimeSpin">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="suffix">
+              <string>s</string>
+             </property>
+             <property name="singleStep">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="value">
+              <double>0.200000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="2">
+            <widget class="SpinBox" name="pulseTimeSpin">
+             <property name="suffix">
+              <string>s</string>
+             </property>
+             <property name="singleStep">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="2">
+            <widget class="SpinBox" name="delayTimeSpin">
+             <property name="suffix">
+              <string>s</string>
+             </property>
+             <property name="minimum">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>10000.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="2" rowspan="2">
+            <widget class="SpinBox" name="icHoldSpin">
+             <property name="suffix">
+              <string>A</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="2">
+            <widget class="SpinBox" name="icPulseSpin">
+             <property name="suffix">
+              <string>A</string>
+             </property>
+            </widget>
+           </item>
            <item row="3" column="2">
             <widget class="SpinBox" name="vcHoldSpin">
              <property name="suffix">
@@ -431,7 +431,7 @@
              </property>
             </widget>
            </item>
-           <item row="5" column="4">
+           <item row="5" column="3">
             <widget class="QLabel" name="capacitanceLabel">
              <property name="font">
               <font>
@@ -496,7 +496,7 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="4">
+           <item row="3" column="3">
             <widget class="QLabel" name="restingPotentialLabel">
              <property name="minimumSize">
               <size>
@@ -518,7 +518,7 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="4">
+           <item row="1" column="3">
             <widget class="QLabel" name="inputResistanceLabel">
              <property name="font">
               <font>
@@ -541,7 +541,7 @@
              </property>
             </widget>
            </item>
-           <item row="6" column="4">
+           <item row="6" column="3">
             <widget class="QLabel" name="fitErrorLabel">
              <property name="font">
               <font>
@@ -557,7 +557,7 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="4">
+           <item row="2" column="3">
             <widget class="QLabel" name="accessResistanceLabel">
              <property name="font">
               <font>
@@ -580,7 +580,7 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="4">
+           <item row="4" column="3">
             <widget class="QLabel" name="restingCurrentLabel">
              <property name="minimumSize">
               <size>
@@ -671,6 +671,11 @@
    <class>SpinBox</class>
    <extends>QDoubleSpinBox</extends>
    <header>pyqtgraph</header>
+  </customwidget>
+  <customwidget>
+   <class>CustomSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>..Patch.CustomSpinBox</header>
   </customwidget>
   <customwidget>
    <class>PlotWidget</class>

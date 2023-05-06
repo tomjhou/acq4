@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
+import inspect
+
+from pyqtgraph import SpinBox
+
 from acq4.devices.Device import TaskGui
 from pyqtgraph.WidgetGroup import WidgetGroup
 from acq4.util import Qt
@@ -18,6 +22,12 @@ class NiDAQTask(TaskGui):
         TaskGui.__init__(self, dev, taskRunner)
         self.ui = Ui_Form()
         self.ui.setupUi(self)
+
+        # Prevent SpinBox GUI objects from getting squashed vertically.
+        for x in inspect.getmembers(self.ui):
+            if isinstance(x[1], SpinBox):
+                x[1].setOpts(compactHeight=False)
+
         self.nPts = 0
         self.ignorePeriod = False
         self.ignoreRate = False

@@ -13,6 +13,8 @@ from six.moves import map
 from six.moves import range
 from six.moves import reduce
 
+import inspect
+
 import acq4.util.DirTreeWidget as DirTreeWidget
 import pyqtgraph as pg
 import pyqtgraph.configfile as configfile
@@ -34,6 +36,7 @@ from acq4.devices.NiDAQ.nidaq import NiDAQ
 from acq4.devices.NiDAQ.taskGUI import NiDAQTask
 from acq4.devices.DAQGeneric.DAQGeneric import DAQGeneric
 from acq4.devices.DAQGeneric.taskGUI import DAQGenericTaskGui
+
 
 if TYPE_CHECKING:
     from PyQt5.QtWidgets import QListWidgetItem
@@ -110,6 +113,12 @@ class TaskRunner(Module):
 
         g = self.win.geometry()
         self.ui.setupUi(self.win)
+
+        for x in inspect.getmembers(self.ui):
+            # Prevent SpinBox objects from shrinking
+            if isinstance(x[1], pg.SpinBox):
+                x[1].setOpts(compactHeight=False)
+
         self.win.setGeometry(g)
         self.win.setStatusBar(StatusBar())
 

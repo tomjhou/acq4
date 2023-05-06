@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+from __future__ import print_function, annotations
 
 import weakref
+import inspect
 
 from acq4.devices.DAQGeneric.DaqChannelGui import OutputChannelGui, InputChannelGui
 from acq4.devices.Device import TaskGui
-from pyqtgraph import PlotWidget
+
+from pyqtgraph import PlotWidget, SpinBox
 from pyqtgraph.WidgetGroup import WidgetGroup
 from acq4.util import Qt
 from acq4.util.debug import printExc
@@ -23,6 +25,12 @@ class DAQGenericTaskGui(TaskGui):
         if ownUi:
             self.ui = Ui_Form()
             self.ui.setupUi(self)
+
+            # Prevent SpinBox GUI objects from getting squashed vertically.
+            for x in inspect.getmembers(self.ui):
+                if isinstance(x[1], SpinBox):
+                    x[1].setOpts(compactHeight=False)
+
             self.stateGroup = WidgetGroup([
                 (self.ui.topSplitter, 'splitter1'),
                 (self.ui.controlSplitter, 'splitter2'),

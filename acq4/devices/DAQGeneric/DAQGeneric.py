@@ -7,10 +7,11 @@ from collections import OrderedDict
 
 import numpy as np
 import six
+import inspect
 
 from acq4.devices.DAQGeneric.taskGUI import DAQGenericTaskGui
 from acq4.devices.Device import Device, DeviceTask
-from pyqtgraph import siFormat
+from pyqtgraph import siFormat, SpinBox
 from pyqtgraph.debug import Profiler
 from acq4.util import Qt
 from acq4.util.Mutex import Mutex
@@ -520,6 +521,12 @@ class DAQDevGui(Qt.QWidget):
             wid = Qt.QWidget()
             ui = Ui_Form()
             ui.setupUi(wid)
+
+            # Prevent SpinBox GUI objects from getting squashed vertically.
+            for x in inspect.getmembers(ui):
+                if isinstance(x[1], SpinBox):
+                    x[1].setOpts(compactHeight=False)
+
             self.layout.addWidget(wid)
             ui.analogCtrls = [ui.scaleDefaultBtn, ui.scaleSpin, ui.offsetDefaultBtn, ui.offsetSpin, ui.scaleLabel,
                               ui.offsetLabel]

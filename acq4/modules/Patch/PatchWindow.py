@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import inspect
+
 import numpy as np
 import os
 import scipy.optimize
@@ -19,7 +21,7 @@ from acq4.util.Thread import Thread
 from acq4.util.debug import printExc
 from pyqtgraph import PlotWidget, mkPen, AxisItem
 from pyqtgraph import WidgetGroup
-from pyqtgraph import siFormat
+from pyqtgraph import siFormat, SpinBox
 from pyqtgraph.debug import Profiler
 
 from .CustomAxisItem import CustomAxisItem
@@ -71,7 +73,6 @@ class PatchWindow(Qt.QMainWindow):
             'average': 1,
         }
         
-        
         self.paramLock = Mutex(Qt.QMutex.Recursive)
 
         self.manager = dm
@@ -81,6 +82,12 @@ class PatchWindow(Qt.QMainWindow):
         self.setCentralWidget(self.cw)
         self.ui = Ui_Form()
         self.ui.setupUi(self.cw)
+
+        # Prevent SpinBox GUI objects from getting squashed vertically.
+        for x in inspect.getmembers(self.ui):
+            if isinstance(x[1], SpinBox):
+                x[1].setOpts(compactHeight=False)
+
         #self.logBtn = LogButton("Log")
         #self.statusBar().addPermanentWidget(self.logBtn)
         self.setStatusBar(StatusBar())

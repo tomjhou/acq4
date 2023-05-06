@@ -5,6 +5,9 @@ from __future__ import print_function, with_statement, annotations
 from typing import TYPE_CHECKING
 
 import os
+import inspect
+
+from pyqtgraph import SpinBox
 
 import pyqtgraph.multiprocess as mp
 from acq4.devices.AxoPatch200 import CancelException
@@ -388,6 +391,12 @@ class MockClampDevGui(Qt.QWidget):
         self.dev = dev
         self.ui = Ui_MockClampDevGui()
         self.ui.setupUi(self)
+
+        # Prevent SpinBox GUI objects from getting squashed vertically.
+        for x in inspect.getmembers(self.ui):
+            if isinstance(x[1], SpinBox):
+                x[1].setOpts(compactHeight=False)
+
         self.ui.vcHoldingSpin.setOpts(step=1, minStep=1e-3, dec=True, suffix='V', siPrefix=True)
         self.ui.icHoldingSpin.setOpts(step=1, minStep=1e-12, dec=True, suffix='A', siPrefix=True)
         # self.ui.modeCombo.currentIndexChanged.connect(self.modeComboChanged)
