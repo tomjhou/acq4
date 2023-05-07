@@ -102,7 +102,7 @@ class SequenceRunner:
                 if self._passArgs:
                     ret = func(**params)
                 else:
-                    ret = func(params)
+                    ret = func(params)      # func could be generateTask()?
             except Exception as e:
                 if len(e.args) > 0 and e.args[0] == 'stop':
                     stop = True

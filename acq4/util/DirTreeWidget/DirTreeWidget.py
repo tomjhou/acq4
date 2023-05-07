@@ -12,7 +12,9 @@ from six.moves import range
 
 if TYPE_CHECKING:
     from acq4.util.DataManager import DirHandle
+    from acq4.util.Qt import QtCore
     from PyQt5.QtWidgets import QTreeWidgetItem
+    from PyQt5.QtCore import QModelIndex, pyqtSignal
 
 class DirTreeWidget(Qt.QTreeWidget):
 
@@ -260,10 +262,15 @@ class DirTreeWidget(Qt.QTreeWidget):
         #del self.handles[item]
         self.unwatch(handle)
 
-    def rebuildChildren(self, root: QTreeWidgetItem):
+    def rebuildChildren(self, root: QTreeWidgetItem | FileTreeItem):
         """Make sure all children are present and in the correct order"""
         scroll: int = self.verticalScrollBar().value()
         handle: DirHandle = self.handle(root)
+
+        if not handle.isDir():
+            # If not directory, then does not have children
+            return
+
         files: list[str] = handle.ls(sortMode=self.sortMode)
 
         self.clearTree(root)
@@ -335,7 +342,7 @@ class DirTreeWidget(Qt.QTreeWidget):
                 del self.items[handle]
             root.removeChild(child)
 
-    def itemExpandedEvent(self, item):
+    def itemExpandedEvent(self, item: FileTreeItem):
         """Called whenever an item in the tree is expanded; responsible for loading children if they have not been loaded yet."""
         if not item.childrenLoaded:
             try:
@@ -383,25 +390,72 @@ class DirTreeWidget(Qt.QTreeWidget):
         if item is None:
             return
         self.menu = Qt.QMenu(self)
+        act = self.menu.addAction('Open in Windows Explorer', self.openExplorerClicked)
+        act = self.menu.addAction('Expand all', self.expandFromHere)
+        act = self.menu.addAction('Collapse all', self.collapseToHere)
         act = self.menu.addAction('Refresh', self.refreshClicked)
-        act = self.menu.addAction('Open in Windows Explorer/App', self.openExplorerClicked)
         self.contextItem = item
         self.menu.popup(ev.globalPos())
         
     def refreshClicked(self):
         self.rebuildTree(self.contextItem, useCache=False)
 
+    def expandFromHere(self, idx=None):
+
+        if idx is None:
+            idx = self.selectedIndexes()
+            if len(idx) > 0:
+                idx = idx[0]
+            else:
+                Qt.ShowMessage("No item selected")
+                return
+
+        item = self.itemFromIndex(idx)
+        for i in range(item.childCount()):
+            # Collapse each child
+            self.expandFromHere(idx.model().index(i, 0, idx))
+
+        if item.handle.isDir():
+            # Collapse the selected item
+            self.expand(idx)
+
+        return
+
+        # For some reason, this sometimes only expands the top level.
+        # self.expandRecursively(idx)
+
+    def collapseToHere(self, idx: QModelIndex = None):
+        if idx is None:
+            idx = self.selectedIndexes()
+            if len(idx) > 0:
+                idx = idx[0]
+            else:
+                Qt.ShowMessage("No item selected")
+                return
+
+        item = self.itemFromIndex(idx)
+        for i in range(item.childCount()):
+            # Collapse each child
+            self.collapseToHere(idx.model().index(i, 0, idx))
+
+        if item.handle.isDir():
+            # Collapse the selected item
+            self.collapse(idx)
+
     def openExplorerClicked(self):
 
-        item = self.selectedItems()
+        item: FileTreeItem = self.selectedItems()
         if len(item) > 0:
-            item = item[0]
+            item_h: DirHandle = item[0].handle
         else:
             Qt.ShowMessage("No file/folder selected")
             return
 
+        if not item_h.isDir():
+            item_h = item_h.parent()
+
         try:
-            subprocess.Popen('explorer "' + item.handle.path + '"')
+            subprocess.Popen('explorer "' + item_h.path + '"')
         except:
             Qt.ShowMessage("Error opening folder")
             pass

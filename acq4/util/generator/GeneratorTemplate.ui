@@ -419,14 +419,14 @@ p, li { white-space: pre-wrap; }
         <item>
          <widget class="QPushButton" name="updateBtn">
           <property name="text">
-           <string>Update</string>
+           <string>Update plot</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QCheckBox" name="autoUpdateCheck">
           <property name="text">
-           <string>Auto</string>
+           <string>Auto update</string>
           </property>
           <property name="checked">
            <bool>true</bool>

@@ -112,7 +112,11 @@ class DAQGenericTaskGui(TaskGui):
         
     def taskStarted(self, params):  ## automatically invoked from TaskGui
         ## Pull out parameters for this device
-        params = dict([(p[1], params[p]) for p in params if p[0] == self.dev.name()])
+        dev_name: str = self.dev.name()
+
+        # With simulated device, params will target the device name, e.g. Clamp1, but self.dev.name() will
+        # be Clamp1Daq
+        params = dict([(p[1], params[p]) for p in params if p[0] == dev_name or (p[0] + 'Daq') == dev_name])
         
         for ch in self.channels:
             ## Extract just the parameters the channel will need

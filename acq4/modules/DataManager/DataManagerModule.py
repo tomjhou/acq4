@@ -15,6 +15,7 @@ from acq4.util import Qt
 from acq4.util.DataManager import getDataManager, getHandle, DirHandle
 from acq4.util.StatusBar import StatusBar
 from acq4.util.debug import printExc
+from acq4.util.DirTreeWidget import DirTreeWidget
 from . import FileAnalysisView
 from . import FileLogView
 
@@ -80,9 +81,23 @@ class DataManager(Module):
         self.ui.selectDirBtn.clicked.connect(self.showFileDialog)
         self.ui.setCurrentDirBtn.clicked.connect(self.setCurrentClicked)
         self.ui.setLogDirBtn.clicked.connect(self.setLogDir)
+
+        self.ui.pushButtonExpandAll.clicked.connect(self.expandClicked)
+        self.ui.pushButtonCollapseAll.clicked.connect(self.collapseClicked)
+        self.ui.pushButtonExpandSelected.clicked.connect(self.expandSelectedClicked)
+
         self.win.sigClosed.connect(self.quit)
 
         self.win.setStatusBar(StatusBar())
+
+    def expandClicked(self):
+        self.ui.fileTreeWidget.expandAll()
+
+    def collapseClicked(self):
+        self.ui.fileTreeWidget.collapseAll()
+
+    def expandSelectedClicked(self):
+        self.ui.fileTreeWidget.expandFromHere()
 
     def updateNewFolderList(self):
         self.ui.newFolderList.clear()

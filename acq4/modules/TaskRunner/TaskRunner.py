@@ -830,12 +830,12 @@ class TaskRunner(Module):
 
     def taskStarted(self, params):
         cur = 'Current iteration:\n'
-        plist = self.ui.sequenceParamList.listParams()
+        plist: list[tuple] = self.ui.sequenceParamList.listParams()
         try:
             nums = [str(params[p[:2]] + 1) for p in plist]
         except:
             nums = []
-        cur += ',  '.join(nums)
+        cur += ',  '.join(nums)  # Construct sequence number
         self.ui.seqCurrentLabel.setText(cur)
 
         # check for co-sequenced parameters and re-insert here.
@@ -1005,7 +1005,7 @@ class TaskThread(Thread):
     def __init__(self, ui):
         Thread.__init__(self)
         self.ui = ui
-        self.dm = self.ui.manager
+        self.dm: Manager = self.ui.manager
         self.lock = Mutex(Qt.QMutex.Recursive)
         self.stopThread = True
         self.abortThread = False

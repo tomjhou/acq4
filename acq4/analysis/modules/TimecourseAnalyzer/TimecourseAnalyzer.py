@@ -13,6 +13,8 @@ from acq4.util import Qt
 from acq4.util.DatabaseGui.DatabaseGui import DatabaseGui
 from acq4.util.HelpfulException import HelpfulException
 
+from acq4.util.DataManager import FileHandle
+
 
 class TimecourseAnalyzer(AnalysisModule):
 
@@ -122,9 +124,18 @@ class TimecourseAnalyzer(AnalysisModule):
         """
         
         if files is None:
-            return
+            return False
 
-        n = len(files[0].ls()) 
+        if not files[0].isDir():
+            # Need to select a folder, not file
+            Qt.ShowMessage("Select directory")
+            return False
+
+        n = len(files[0].ls())
+
+        if self.dataModel is None:
+            Qt.ShowMessage("No data model.")
+            return False
 
         with pg.ProgressDialog("Loading data..", 0, n) as dlg:
             for f in files:
@@ -134,7 +145,9 @@ class TimecourseAnalyzer(AnalysisModule):
                     if not f[protoDir].isDir():
                         print("Skipping file %s" %f[protoDir].name())
                         continue
+
                     df = self.dataModel.getClampFile(f[protoDir])
+
                     if df is None:
                         print('Error in reading data file %s' % f[protoDir].name())
                         #break
@@ -147,11 +160,15 @@ class TimecourseAnalyzer(AnalysisModule):
                     maxi += 1  # keep track of successfully read traces
                     dlg += 1
                     if dlg.wasCanceled():
-                        return
+                        return False
                 self.traces = np.concatenate((self.traces, arr[:maxi]))  # only concatenate successfully read traces
                 #self.lastAverageState = {}
                 self.files.append(f)
-        
+
+        if len(self.traces) == 0:
+            Qt.ShowMessage("No traces read.")
+            return False
+
         self.expStart = self.traces['timestamp'].min()
         #self.averageCtrlChanged()
         self.updateExptPlot()
