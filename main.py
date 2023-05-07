@@ -6,9 +6,10 @@ import sys
 
 def run_with_args():
     print('Choose config:')
-    print('1. Standard (700B)')
+    print('1. Default')
     print('2. MultiClamp 700B')
     print('3. Simulated clamp')
+    print('4. TestDebug')
     inp = input('Select option: ')
     if inp == '1':
         testargs = ["acq4", "-c", "./config/default.cfg"]
@@ -16,6 +17,8 @@ def run_with_args():
         testargs = ["acq4", "-c", "./config/config_700B/default.cfg"]
     elif inp == '3':
         testargs = ["acq4", "-c", "./config/config_simulated/default.cfg"]
+    elif inp == '4':
+        testargs = ["acq4", "-c", "./config/test_debug/default.cfg"]
     else:
         print('Invalid option')
         return

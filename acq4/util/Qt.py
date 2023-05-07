@@ -39,6 +39,7 @@ def ShowMessage(msg: str, title:str = 'Warning:'):
     mbox.setText(msg + "    ")
     mbox.setWindowTitle(title)
     mbox.setStandardButtons(mbox.Ok)
+    mbox.setTextInteractionFlags(Qt.TextSelectableByMouse)
     mbox.exec_()
 
 

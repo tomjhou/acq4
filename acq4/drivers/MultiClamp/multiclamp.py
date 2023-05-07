@@ -342,6 +342,12 @@ class MultiClamp:
             #caller = "nevermind"
             print("      caller:", caller)
         if channel not in self.channels:
+            chanList = ['    channelID: \'' + c + '\'' for c in self.channels.keys()]
+            chanList = '\n'.join(chanList)
+            Qt.ShowMessage(f"MultiClamp channel \"{str(channel)}\" not found.\n\n"
+                           f"Available devices and channels are listed below. "
+                           f"Please copy/paste one of the following lines into MultiClamp device configuration:\n\n" + chanList)
+
             raise Exception("No channel with description '%s'. Options are %s" % (str(channel), str(self.listChannels())))
             
         ch = self.channels[channel]

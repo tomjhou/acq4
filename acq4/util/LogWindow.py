@@ -781,7 +781,7 @@ class ErrorDialog(Qt.QDialog):
         self.msgLabel.setMinimumWidth(500)
         self.msgLabel.setWordWrap(True)
         self.layout.addStretch()
-        self.disableCheck = Qt.QCheckBox("Disable error message popups")
+        self.disableCheck = Qt.QCheckBox("Disable error message popups for this session.")
         self.layout.addWidget(self.disableCheck)
 
         self.btnLayout = Qt.QHBoxLayout()
