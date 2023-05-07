@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 from acq4.util import Qt
+from acq4.util.CustomErrorTypes import ModuleReusedError
 import os
 import acq4.util.database as database
 import acq4.Manager
@@ -152,9 +153,15 @@ class FileAnalysisView(Qt.QWidget):
             #return
         #modName = str(self.ui.analysisCombo.currentText())
         #self.ui.analysisCombo.setCurrentIndex(0)
-        mod = AnalysisHost.AnalysisHost(dataManager=self.mod, dataModel=self.currentModel, module=modName)
-        self.mods.append(mod)
-        self.man.modules[modName] = mod
+        try:
+            mod = AnalysisHost.AnalysisHost(dataManager=self.mod, dataModel=self.currentModel, module=modName)
+
+            self.mods.append(mod)
+            self.man.modules[modName] = mod
+        except ModuleReusedError:
+            # Find previously loaded module and re-show it
+            mod = self.man.modules[modName]
+            mod.show()
 
     def populateModelList(self):
         self.ui.dataModelCombo.clear()

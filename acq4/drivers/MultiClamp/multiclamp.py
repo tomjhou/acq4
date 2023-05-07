@@ -424,13 +424,14 @@ class MultiClamp:
 
             exc: Exception = sys.exc_info()[1]
 
+            if exc.args[0] == 6000:  ## We have reached the end of the device list
+                return None
+
             if "MULTICLAMP COMMANDER IS NOT OPEN" in exc.args[1].upper():
                 Qt.ShowMessage('MultiClamp Commander is not open. Will not be able to communicate with MultiClamp device.')
 
-            if exc.args[0] == 6000:  ## We have reached the end of the device list
-                return None
             raise
-        
+
         desc = {'sn': ret['pszSerialNum'], 'model': ret['puModel'], 'com': ret['puCOMPortID'], 'dev': ret['puDeviceID'], 'chan': ret['puChannelID']}
 
         return desc

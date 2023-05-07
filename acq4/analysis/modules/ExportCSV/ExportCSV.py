@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, annotations
 
 import os
 from collections import OrderedDict
@@ -7,12 +7,16 @@ import numpy as np
 import pandas as pd
 
 import pyqtgraph as pg
+
+import acq4.Manager
 import acq4.util.debug as debug
 from acq4.analysis.AnalysisModule import AnalysisModule
 from pyqtgraph.flowchart import Flowchart
 from acq4.util import Qt
 from acq4.util.Qt import QtGui, QtWidgets
 from acq4.util.DatabaseGui.DatabaseGui import DatabaseGui
+
+from MetaArray import MetaArray as MA
 
 from acq4.filetypes.MetaArray import MetaArray
 
@@ -25,28 +29,30 @@ deviceNames = {
 }
 
 
-def getClampFile(protoDH):
+def IsClampFile(path):
     """
     Given a protocol directory handle, return the clamp file handle within.
     If there are multiple clamps, only the first one encountered in deviceNames is returned.
     Return None if no clamps are found.
     """
-    if protoDH.name()[-8:] == 'DS_Store':  ## OS X filesystem puts .DS_Store files in all directories
-        return None
-    files = protoDH.ls()
+    base_name = os.path.basename(path)
     for n in deviceNames['Clamp']:
-        if n in files:
-            return protoDH[n]
-        if n + '.ma' in files:
-            return protoDH[n + '.ma']
+        if base_name.startswith(n) and base_name.endswith('.ma'):
+            return True
 
-        # Simulated device filenames will have Daq suffix
-        if n + 'Daq.ma' in files:
-            return protoDH[n + 'Daq.ma']
+    return False
 
-    # print 'getClampFile: did not find protocol for clamp: ', files
-    # print 'valid devices: ', deviceNames['Clamp']
-    return None
+def FindClampFilesRecursive(path):
+    lst = []
+    if os.path.isdir(path):
+        for x in os.listdir(path):
+            p = os.path.join(path, x)
+            lst += FindClampFilesRecursive(p)
+    else:
+        if IsClampFile(path):
+            lst.append(path)
+
+    return lst
 
 
 class ExportCSV(AnalysisModule):
@@ -113,12 +119,6 @@ class ExportCSV(AnalysisModule):
         self.traceSelectRgn.setRegion([0, 60])
         self.exptPlot.addItem(self.traceSelectRgn)
         self.traceSelectRgn.sigRegionChanged.connect(self.updateTracesPlot)
-        #self.traceSelectRgn.sigRegionChangeFinished.connect(self.updateAnalysis)
-        #self.flowchart.sigOutputChanged.connect(self.flowchartOutputChanged)
-
-        #self.addRegionParam = pg.parametertree.Parameter.create(name="Add Region", type='action')
-        #self.paramTree.addParameters(self.addRegionParam)
-        #self.addRegionParam.sigActivated.connect(self.newRegionRequested)
         self.analyzeBtn.clicked.connect(self.analyzeBtnClicked)
         self.storeToCSV.clicked.connect(self.storeToCSV_Clicked)
         self.flowchart.sigChartLoaded.connect(self.connectPlots)
@@ -151,7 +151,7 @@ class ExportCSV(AnalysisModule):
         self.resultsTable.clear()
         self.resultsPlot.clear()
 
-    def loadFileRequested(self, files):
+    def loadFileRequested(self, files: list[acq4.util.DataManager.DirHandle]):
         """Called by FileLoader when the load EPSP file button is clicked, once for each selected file.
                 files - a list of the file currently selected in FileLoader
         """
@@ -159,50 +159,31 @@ class ExportCSV(AnalysisModule):
         if files is None:
             return False
 
-        if not files[0].isDir():
-            # Need to select a folder, not file
-            Qt.ShowMessage("Select directory")
-            return False
+        clamp_files = []
+        for f in files:
+            clamp_files += FindClampFilesRecursive(f.path)
 
-        n = len(files[0].ls())
+        with pg.ProgressDialog("Loading data..", 0, len(clamp_files)) as dlg:
+            for df in clamp_files:
+                arr = np.zeros((1), dtype=[('timestamp', float), ('data', object), ('fileHandle', object), ('results', object)])
 
-        self.parent_dir = files[0]
+                data = MA(file=df)
 
-        with pg.ProgressDialog("Loading data..", 0, n) as dlg:
-            for f in files:
-                arr = np.zeros((len(f.ls())), dtype=[('timestamp', float), ('data', object), ('fileHandle', object), ('results', object)])
-                maxi = -1
-                for i, protoDir in enumerate(f.ls()):
-                    if not f[protoDir].isDir():
-                        print("Skipping file %s" %f[protoDir].name())
-                        continue
-
-                    df = getClampFile(f[protoDir])
-
-                    if df is None:
-                        print('Error in reading data file %s' % f[protoDir].name())
-                        #break
-                        continue
-
-                    data = df.read()
-                    timestamp = data.infoCopy()[-1]['startTime']
-                    arr[i]['fileHandle'] = df
-                    arr[i]['timestamp'] = timestamp
-                    arr[i]['data'] = data
-                    maxi += 1  # keep track of successfully read traces
-                    dlg += 1
-                    if dlg.wasCanceled():
-                        return False
-                self.traces = np.concatenate((self.traces, arr[:maxi]))  # only concatenate successfully read traces
-                #self.lastAverageState = {}
-                self.files.append(f)
+                timestamp = data.infoCopy()[-1]['startTime']
+                arr[0]['fileHandle'] = df
+                arr[0]['timestamp'] = timestamp
+                arr[0]['data'] = data
+                dlg += 1
+                if dlg.wasCanceled():
+                    return False
+                self.traces = np.concatenate((self.traces, arr))  # only concatenate successfully read traces
+                self.files.append(df)
 
         if len(self.traces) == 0:
             Qt.ShowMessage("No traces read.")
             return False
 
         self.expStart = self.traces['timestamp'].min()
-        #self.averageCtrlChanged()
         self.updateExptPlot()
         self.updateTracesPlot()
         return True
@@ -262,16 +243,26 @@ class ExportCSV(AnalysisModule):
         out_wave = None
         header1 = ''
         header2 = ''
+
+        if len(self.traces) == 0:
+            Qt.ShowMessage('No traces available to save')
+            return
+
         for i, t in enumerate(self.traces):
             data_types = t.dtype
             vals: MetaArray = t['data']  # Also have 'timestamp', 'fileHandle', and 'results'
             a = np.array(vals).T
-            command = a[:, [0]]  # Note extra brackets, which gives us column vector instead of 1D array
+            command = a[:, [0]]  # Note extra brackets around "0", which gives us column vector instead of 1D array
             wave = a[:, [1]]
             if out_command is None:
                 out_command = command
                 out_wave = wave
+                num_points = a.shape[0]
             else:
+                if num_points != a.shape[0]:
+                    Qt.ShowMessage("Files have different waveform lengths. Please convert them individually.")
+                    return
+
                 out_command = np.concatenate((out_command, command), axis=1)
                 out_wave = np.concatenate((out_wave, wave), axis=1)
                 header1 += ', '
@@ -280,13 +271,29 @@ class ExportCSV(AnalysisModule):
             header1 += 'cmd_' + str(i + 1)
             header2 += 'wav_' + str(i + 1)
 
-        num_points = a.shape[0]
 
         win = Qt.QApplication.topLevelWidgets()
         win = win[win is Qt.QMainWindow]
 
         if win is not None:
-            name = QtWidgets.QFileDialog.getSaveFileName(win, 'Save File', self.parent_dir.path + "out.csv")
+
+            # Note that parent_dir is often a folder with many subfolders and files inside
+            # We will use it to build default filename.
+            dir = self.parent_dir
+
+            if self.parent_dir is None:
+                dir = acq4.Manager.getManager().getBaseDir()
+                if dir is None:
+                    Qt.ShowMessage("No save folder found.")
+                    return
+                default_file = os.path.join(dir.path, "out.csv")
+            else:
+                default_file = dir.path + "_concat.csv"
+
+            name = QtWidgets.QFileDialog.getSaveFileName(win, 'Save File', default_file)
+
+            if name[0] == '':
+                return
 
             try:
                 np.savetxt(name[0], np.concatenate((out_command, out_wave), axis=1),

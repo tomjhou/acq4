@@ -9,6 +9,8 @@ import six
 
 from pyqtgraph.util.mutex import Mutex
 from acq4.util import Qt
+from acq4.util.CustomErrorTypes import ModuleReusedError
+
 
 # Needed for type hints. Use of TYPE_CHECKING helps avoid circular import
 if TYPE_CHECKING:
@@ -72,7 +74,7 @@ class InterfaceDirectory(Qt.QObject):
                 types = [types]
             for t in types:
                 if t in self.typeList and name in self.typeList[t] and obj is not self.typeList[t][name]:
-                    raise NameError("Interface type %r name %r is already used." % (t, name))
+                    raise ModuleReusedError("Interface type %r name %r is already used." % (t, name))
                 
             if name not in self.nameList:
                 self.nameList[name] = {}

@@ -48,6 +48,7 @@ class FileLoader(Qt.QWidget):
         if dh is None:
             dh = getManager().getBaseDir()
         if dh is None:
+            Qt.ShowMessage("No directory selected, cannot set base directory")
             return
             #logMsg("Cannot set base directory because no directory is selected in Data Manager.", msgType='error')
             #return
@@ -78,6 +79,8 @@ class FileLoader(Qt.QWidget):
                     self.loaded.append(fh)
                 elif self.host.loadFileRequested([fh]):
                     name = fh.name(relativeTo=self.ui.dirTree.baseDirHandle())
+                    if name == '':
+                        name = '<top-level>'
                     item = Qt.QTreeWidgetItem([name])
                     item.file = fh
                     self.ui.fileTree.addTopLevelItem(item)
