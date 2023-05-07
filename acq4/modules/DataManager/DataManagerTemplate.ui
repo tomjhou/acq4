@@ -130,7 +130,7 @@
           <item>
            <widget class="QPushButton" name="pushButtonExpandSelected">
             <property name="text">
-             <string>Expand selected</string>
+             <string>Expand branch</string>
             </property>
            </widget>
           </item>

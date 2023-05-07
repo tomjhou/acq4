@@ -10,6 +10,9 @@ import acq4.util.Canvas as Canvas
 import acq4.util.FileLoader as FileLoader
 from acq4.util import Qt
 
+# Need this for type hinting
+from acq4.analysis.dataModels.PatchEPhys import PatchEPhys
+
 
 class AnalysisModule(Qt.QObject):
     """
@@ -57,7 +60,7 @@ class AnalysisModule(Qt.QObject):
         as (name: (args..)) pairs, and the element objects will be created automatically."""
         Qt.QObject.__init__(self)
         self._host_ = host
-        self.dataModel = host.dataModel
+        self.dataModel: PatchEPhys = host.dataModel
         self._sizeHint = (800, 600)
 
     def initializeElements(self):

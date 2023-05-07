@@ -391,8 +391,8 @@ class DirTreeWidget(Qt.QTreeWidget):
             return
         self.menu = Qt.QMenu(self)
         act = self.menu.addAction('Open in Windows Explorer', self.openExplorerClicked)
-        act = self.menu.addAction('Expand all', self.expandFromHere)
-        act = self.menu.addAction('Collapse all', self.collapseToHere)
+        act = self.menu.addAction('Expand this branch', self.expandFromHere)
+        act = self.menu.addAction('Collapse this branch', self.collapseToHere)
         act = self.menu.addAction('Refresh', self.refreshClicked)
         self.contextItem = item
         self.menu.popup(ev.globalPos())

@@ -236,6 +236,11 @@ def getClampFile(protoDH):
             return protoDH[n]
         if n + '.ma' in files:
             return protoDH[n + '.ma']
+
+        # Simulated device filenames will have Daq suffix
+        if n + 'Daq.ma' in files:
+            return protoDH[n + 'Daq.ma']
+
     # print 'getClampFile: did not find protocol for clamp: ', files
     # print 'valid devices: ', deviceNames['Clamp']
     return None
