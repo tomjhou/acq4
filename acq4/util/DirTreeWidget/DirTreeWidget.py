@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from PyQt5.QtWidgets import QTreeWidgetItem
     from PyQt5.QtCore import QModelIndex, pyqtSignal
 
+
 class DirTreeWidget(Qt.QTreeWidget):
 
     sigSelectionChanged = Qt.Signal(object)
@@ -43,7 +44,14 @@ class DirTreeWidget(Qt.QTreeWidget):
         self.setDragEnabled(True)
 
         if baseDirHandle is not None:
-            self.setBaseDirHandle(baseDirHandle)
+            # Most of the time, baseDirHandle is None, so this is moot. However,
+            # we want to add root node to DataManager but not anything else.
+
+            # When called from DataManager, we are called from PyQt5.QWidgets.QWidget (via .ui file)
+            # When called from TaskRunner, we are called from
+            from acq4.modules.TaskRunner import Loader
+            isTaskRunner = isinstance(parent, Loader)
+            self.setBaseDirHandle(baseDirHandle, addRoot=not isTaskRunner)
 
     def __del__(self):
         try:
@@ -152,7 +160,15 @@ class DirTreeWidget(Qt.QTreeWidget):
         finally:
             item.setText(0, handle.shortName())
 
-    def setBaseDirHandle(self, d: DirHandle):
+    def setBaseDirHandle(self, d: DirHandle, addRoot=False):
+        """
+
+        :param d:
+        :param addRoot: If True, then root folder will appear in tree. This allows one to select it
+           as a storage or log directory. This is useful for DataManager, but may cause problems with
+           TaskRunner
+        :return:
+        """
         #print "set base", d.name()
         if self.baseDir is not None:
             self.unwatch(self.baseDir)
@@ -168,9 +184,12 @@ class DirTreeWidget(Qt.QTreeWidget):
             self.items = {self.baseDir: self.invisibleRootItem()}
         self.clear()
         if d is not None:
-            # TomJ: Root directory does not show unless we explicitly add it.
-            it = FileTreeItem(d, self.checkState, self.allowMove, self.allowRename)
-            self.invisibleRootItem().insertChild(0, it)
+            if addRoot:
+                # TomJ: Root directory does not show unless we explicitly add it.
+                it = FileTreeItem(d, self.checkState, self.allowMove, self.allowRename)
+                self.invisibleRootItem().insertChild(0, it)
+            else:
+                it = self.invisibleRootItem()
 
             # Now add the rest of the file structure
             self.rebuildChildren(it)
@@ -180,7 +199,7 @@ class DirTreeWidget(Qt.QTreeWidget):
 
     def setRoot(self, d):
         """Synonym for setBaseDirHandle"""
-        return self.setBaseDirHandle(d)
+        return self.setBaseDirHandle(d, addRoot=True)
 
     def setCurrentDir(self, d):
         #print "set current %s -> %s" % (self.currentDir, d)
@@ -308,7 +327,7 @@ class DirTreeWidget(Qt.QTreeWidget):
         item = self.item(handle)
         Qt.QTreeWidget.editItem(self, item, 0)
 
-    def rebuildTree(self, root=None, useCache=True):
+    def rebuildTree(self, root=None, useCache=True, addRoot=False):
         """Completely clear and rebuild the entire tree starting at root"""
         if root is None:
             root = self.invisibleRootItem()
@@ -327,8 +346,11 @@ class DirTreeWidget(Qt.QTreeWidget):
             return
 
         # TomJ: Root directory does not show unless we explicitly add it.
-        it = FileTreeItem(handle, self.checkState, self.allowMove, self.allowRename)
-        self.invisibleRootItem().insertChild(0, it)
+        if addRoot:
+            it = FileTreeItem(handle, self.checkState, self.allowMove, self.allowRename)
+            self.invisibleRootItem().insertChild(0, it)
+        else:
+            it = root
         self.rebuildChildren(it)
 
     def clearTree(self, root):

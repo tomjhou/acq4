@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import six
 
-import acq4.util.DataManager as DataManager
+from acq4.util.DataManager import getDirHandle
 from acq4.util import Qt
 from acq4.util.debug import printExc
 
@@ -27,12 +27,13 @@ class DirTreeLoader(Qt.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
         if isinstance(baseDir, six.string_types):
-            baseDir = DataManager.getDirHandle(baseDir, create=create)
+            baseDir = getDirHandle(baseDir, create=create)
         self.baseDir = baseDir
         self.currentFile = None
         
         self.ui.fileTree.setSortMode(sortMode)
-        self.ui.fileTree.setBaseDirHandle(baseDir)
+
+        self.ui.fileTree.setBaseDirHandle(baseDir, addRoot=False)
         
         self.deleteState = 0
 

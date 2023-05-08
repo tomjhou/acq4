@@ -12,6 +12,12 @@ class FileLoader(Qt.QWidget):
     You must call setHost, and the widget will call host.loadFileRequested whenever 
     the user requests to load a file and host.clearFilesRequested whenever the user 
     clicks the clear button."""
+
+    """
+    This object is NOT called from DataManager or TaskRunner.
+    
+    Rather, it is called from the individual Analysis widgets.
+    """
     
     
     sigFileLoaded = Qt.Signal(object)
@@ -43,7 +49,12 @@ class FileLoader(Qt.QWidget):
     def setHost(self, host):
         self.host = host
         
-    def setBaseClicked(self):
+    def setBaseClicked(self, addRoot=False):  # Choose new base directory for file loader
+        """
+        Again, this is not part of the DataManager, but rather the individual analysis widgets.
+        :param addRoot:
+        :return:
+        """
         dh = self.dataManager.selectedFile()
         if dh is None:
             dh = getManager().getBaseDir()
@@ -55,7 +66,7 @@ class FileLoader(Qt.QWidget):
         if not dh.isDir():
             dh = dh.parent()
 
-        self.ui.dirTree.setBaseDirHandle(dh)
+        self.ui.dirTree.setBaseDirHandle(dh, addRoot=addRoot)
         self._baseDir = dh
         self.sigBaseChanged.emit(dh)
         

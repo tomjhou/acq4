@@ -68,6 +68,20 @@ class MultiClampTaskGui(TaskGui):
         self.dev.sigHoldingChanged.connect(self.devHoldingChanged)
         self.uiStateChanged('', '')
         self.devStateChanged()
+
+        self.ui.checkBoxAutoScaleAxes.stateChanged.connect(self.setAutoScale)
+
+    def setAutoScale(self):
+        """
+        Set whether axes are auto-scaled, based on checkbox state.
+        """
+        if hasattr(self.ui, 'checkBoxAutoScaleAxes') and self.ui.checkBoxAutoScaleAxes.isChecked():
+            self.ui.bottomPlotWidget.enableAutoRange()
+            self.ui.topPlotWidget.enableAutoRange()
+        else:
+            self.ui.bottomPlotWidget.enableAutoRange(x=False, y=False)
+            self.ui.topPlotWidget.enableAutoRange(x=False, y=False)
+
         
     def uiStateChanged(self, name, value):
         if 'ModeRadio' in name:
@@ -207,6 +221,8 @@ class MultiClampTaskGui(TaskGui):
     def plotCmdWave(self, data, color=Qt.QColor(100, 100, 100), replot=True):
         if data is None:
             return
+
+        self.setAutoScale()
         plot = self.ui.bottomPlotWidget.plot(data, x=self.timeVals)
         plot.setPen(mkPen(color))
         
@@ -347,6 +363,8 @@ class MultiClampTaskGui(TaskGui):
 
         ## Plot the results
         #plot = self.ui.topPlotWidget.plot(result['primary'].view(numpy.ndarray) / self.inpScale, x=result.xvals('Time'), params=params)
+
+        self.setAutoScale()
         plot = self.ui.topPlotWidget.plot(result['primary'].view(numpy.ndarray), x=result.xvals('Time'), params=params)
         
     def quit(self):

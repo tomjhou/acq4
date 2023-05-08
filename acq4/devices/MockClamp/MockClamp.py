@@ -326,7 +326,8 @@ class MockClampTaskGui(DAQGenericTaskGui):
         # print 'state: ', state
         # print 'DaqGeneric : ', dir(DAQGenericTaskGui)
         if 'mode' in state:
-            self.modeCombo.setCurrentIndex(self.modeCombo.findText(state['mode']))
+            m = state['mode'].upper()
+            self.modeCombo.setCurrentIndex(self.modeCombo.findText(m))
         # self.ctrl.holdingCheck.setChecked(state['holdingEnabled'])
         # if state['holdingEnabled']:
         #    self.ctrl.holdingSpin.setValue(state['holding'])
