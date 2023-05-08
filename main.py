@@ -14,11 +14,11 @@ def run_with_args():
     if inp == '1':
         testargs = ["acq4", "-c", "./config/default.cfg"]
     elif inp == '2':
-        testargs = ["acq4", "-c", "./config/config_700B/default.cfg"]
+        testargs = ["acq4", "-c", "./config/config_700B.cfg"]
     elif inp == '3':
-        testargs = ["acq4", "-c", "./config/config_simulated/default.cfg"]
+        testargs = ["acq4", "-c", "./config/config_simulated.cfg"]
     elif inp == '4':
-        testargs = ["acq4", "-c", "./config/test_debug/default.cfg"]
+        testargs = ["acq4", "-c", "./config/test_debug.cfg"]
     else:
         print('Invalid option')
         return

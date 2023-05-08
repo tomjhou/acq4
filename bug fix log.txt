@@ -10,6 +10,9 @@
    I can see no obvious reason for this, and have removed that part, which seems to fix it.
    But since it occurs twice, I can't help but think I am missing some reason for it to be there.
 
-4.
+4. 5/6/2023: fixed bug where simulated command trace sequences are not plotted correctly.
+
+5. 5/7/2023: fixed issue where analysis module could not be reopened after closing.
+
 
 

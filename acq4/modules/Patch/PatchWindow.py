@@ -192,6 +192,10 @@ class PatchWindow(Qt.QMainWindow):
         self.sigWindowClosed.emit(self)
     
     def bathMode(self):
+        self.ui.cellModeBtn.setChecked(False)
+        self.ui.patchModeBtn.setChecked(False)
+        self.ui.monitorModeBtn.setChecked(False)
+
         self.ui.vcPulseCheck.setChecked(True)
         self.ui.vcHoldCheck.setChecked(False)
         self.ui.vcModeRadio.setChecked(True)
@@ -201,6 +205,10 @@ class PatchWindow(Qt.QMainWindow):
         self.ui.averageSpin.setValue(1)
     
     def patchMode(self):
+        self.ui.bathModeBtn.setChecked(False)
+        self.ui.cellModeBtn.setChecked(False)
+        self.ui.monitorModeBtn.setChecked(False)
+
         self.ui.vcPulseCheck.setChecked(True)
         self.ui.vcHoldCheck.setChecked(True)
         self.ui.vcModeRadio.setChecked(True)
@@ -210,6 +218,10 @@ class PatchWindow(Qt.QMainWindow):
         self.ui.averageSpin.setValue(1)
     
     def cellMode(self):
+        self.ui.bathModeBtn.setChecked(False)
+        self.ui.patchModeBtn.setChecked(False)
+        self.ui.monitorModeBtn.setChecked(False)
+
         self.ui.icPulseCheck.setChecked(True)
         self.ui.icModeRadio.setChecked(True)
         self.ui.cycleTimeSpin.setValue(250e-3)
@@ -218,6 +230,10 @@ class PatchWindow(Qt.QMainWindow):
         self.ui.averageSpin.setValue(1)
 
     def monitorMode(self):
+        self.ui.bathModeBtn.setChecked(False)
+        self.ui.cellModeBtn.setChecked(False)
+        self.ui.patchModeBtn.setChecked(False)
+
         self.ui.cycleTimeSpin.setValue(40)
         self.ui.averageSpin.setValue(5)
         
@@ -412,12 +428,17 @@ class PatchWindow(Qt.QMainWindow):
                     if len(dat) > 0:
                         # Now auto-scale y
                         islog = yax.logMode
-                        y_min = np.log10(np.min(dat)) - 0.1 if islog else np.min(dat)
+                        y_min = np.log10(np.min(dat)) - 0.15 if islog else np.min(dat)
                         if not np.isfinite(y_min):
                             y_min = 5 if islog else 0
-                        y_max = np.log10(np.max(dat)) + 0.1 if islog else np.max(dat)
+                        y_max = np.log10(np.max(dat)) + 0.15 if islog else np.max(dat)
                         if not np.isfinite(y_max):
-                            y_max = 11 if islog else 1000000000
+                            y_max = 10 if islog else 1000000000
+
+                        if islog:
+                            if y_max > 10:
+                                # Don't go past 10Gohm
+                                y_max = 10
 
                         if y_min == y_max:
                             # If y_min == y_max, then setYRange is unpredictable. It is supposed to
@@ -425,7 +446,7 @@ class PatchWindow(Qt.QMainWindow):
                             # avoid this situation.
                             y_min -= 0.5
                             y_max += 0.5
-                        p.setYRange(y_min, y_max, 0.5)  # Last value is padding, which specifies margin as a fraction of max-min
+                        p.setYRange(y_min, y_max, 0.1)  # Last value is padding, which specifies margin as a fraction of max-min
                 #if len(self.analysisData[n+'Std']) > 0:
                     #self.analysisCurves[p+'Std'].setData(self.analysisData['time'], self.analysisData[n+'Std'])
                 #p.replot()
