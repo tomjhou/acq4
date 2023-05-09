@@ -124,6 +124,10 @@ class TimecourseAnalyzer(AnalysisModule):
         if files is None:
             return
 
+        if not files[0].isDir():
+            print("Not a folder")
+            return
+
         n = len(files[0].ls()) 
 
         with pg.ProgressDialog("Loading data..", 0, n) as dlg:
@@ -151,7 +155,11 @@ class TimecourseAnalyzer(AnalysisModule):
                 self.traces = np.concatenate((self.traces, arr[:maxi]))  # only concatenate successfully read traces
                 #self.lastAverageState = {}
                 self.files.append(f)
-        
+
+        if len(self.traces) == 0:
+            print("No traces")
+            return
+
         self.expStart = self.traces['timestamp'].min()
         #self.averageCtrlChanged()
         self.updateExptPlot()
