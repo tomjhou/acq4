@@ -36,6 +36,7 @@ class FileLoader(Qt.QWidget):
         
         self.ui.setDirBtn.clicked.connect(self.setBaseClicked)
         self.ui.loadBtn.clicked.connect(self.loadClicked)
+        self.ui.loadAllBtn.clicked.connect(self.loadAllClicked)
         self.ui.clearBtn.clicked.connect(self.clearClicked)
         self.ui.dirTree.currentItemChanged.connect(self.updateNotes) ## self.ui.dirTree is a DirTreeWidget
         self.ui.dirTree.itemDoubleClicked.connect(self.doubleClickEvent)
@@ -76,7 +77,11 @@ class FileLoader(Qt.QWidget):
     def loadClicked(self):
         fh = self.ui.dirTree.selectedFiles()
         self.loadFile(fh)
-        
+
+    def loadAllClicked(self):
+        fh = self.ui.dirTree.baseDirHandle()
+        self.loadFile([fh])
+
     def doubleClickEvent(self, item, column):
         fh = self.ui.dirTree.handle(item)
         self.loadFile([fh])

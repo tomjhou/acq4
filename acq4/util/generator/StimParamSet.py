@@ -5,6 +5,8 @@ from pyqtgraph.parametertree.parameterTypes import SimpleParameter, GroupParamet
 import pyqtgraph as pg
 import collections
 
+from acq4.util import Qt
+
 class StimParamSet(GroupParameter):
     ## top-level parameter in the simple stim generator tree
     def __init__(self):
@@ -15,10 +17,25 @@ class StimParamSet(GroupParameter):
     def addNew(self, type):
         with self.treeChangeBlocker():  ## about to make lots of tree changes;
                                         ## suppress change signal until we're done.
+
+            isIC = self.meta['y']['units'] == 'A'
+            isVC = self.meta['y']['units'] == 'V'
+
+            ampl = None
+            if isIC:
+                # Current clamp pulse amplitude defaults to 10pA
+                ampl = 1e-11
+            elif isVC:
+                # Voltage clamp pulse amplitude defaults to 5mV
+                ampl = .005
+            else:
+                Qt.ShowMessage("Warning: pulse appears not to be either V or A")
+                ampl = 0.0000001
+
             if type == 'Pulse':
-                ch = self.addChild(PulseParameter(pulseWidth=0.01, pulseAmpl=0.005))
+                ch = self.addChild(PulseParameter(pulseWidth=0.01, pulseAmpl=ampl))
             elif type == 'Pulse Train':
-                ch = self.addChild(PulseTrainParameter(pulsePeriod=.025, pulseAmpl=0.001, ))
+                ch = self.addChild(PulseTrainParameter(pulsePeriod=.025, pulseAmpl=ampl/2, ))
             else:
                 raise Exception('Unknown type %s' % type)
 

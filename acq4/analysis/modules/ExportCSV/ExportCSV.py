@@ -150,6 +150,7 @@ class ExportCSV(AnalysisModule):
         self.tracesPlot.clear()
         self.resultsTable.clear()
         self.resultsPlot.clear()
+        self.parent_dir = None
 
     def loadFileRequested(self, files: list[acq4.util.DataManager.DirHandle]):
         """Called by FileLoader when the load EPSP file button is clicked, once for each selected file.
@@ -162,6 +163,12 @@ class ExportCSV(AnalysisModule):
         clamp_files = []
         for f in files:
             clamp_files += FindClampFilesRecursive(f.path)
+
+        if len(clamp_files) >= 1:
+            if self.parent_dir is None:
+                self.parent_dir=clamp_files[0]
+            else:
+                self.parent_dir = os.path.commonpath((self.parent_dir, clamp_files[0]))
 
         with pg.ProgressDialog("Loading data..", 0, len(clamp_files)) as dlg:
             for df in clamp_files:
@@ -271,24 +278,27 @@ class ExportCSV(AnalysisModule):
             header1 += 'cmd_' + str(i + 1)
             header2 += 'wav_' + str(i + 1)
 
-
         win = Qt.QApplication.topLevelWidgets()
         win = win[win is Qt.QMainWindow]
 
         if win is not None:
 
-            # Note that parent_dir is often a folder with many subfolders and files inside
-            # We will use it to build default filename.
-            dir = self.parent_dir
-
             if self.parent_dir is None:
+                # Get base directory
                 dir = acq4.Manager.getManager().getBaseDir()
                 if dir is None:
                     Qt.ShowMessage("No save folder found.")
                     return
-                default_file = os.path.join(dir.path, "out.csv")
+                default_file = os.path.join(dir.path, "output.csv")
             else:
-                default_file = dir.path + "_concat.csv"
+                if os.path.isfile(self.parent_dir):
+                    # Single file. Replace .ma extension with _out.csv extension
+                    x = os.path.splitext(self.parent_dir)
+                    default_file = x[0] + "_out.csv"
+                else:
+                    # Directory. Default is parent directory, with basename as filename
+                    default_file = os.path.join(os.path.dirname(self.parent_dir),
+                                                os.path.basename(self.parent_dir) + "_out.csv")
 
             name = QtWidgets.QFileDialog.getSaveFileName(win, 'Save File', default_file)
 
@@ -298,6 +308,6 @@ class ExportCSV(AnalysisModule):
             try:
                 np.savetxt(name[0], np.concatenate((out_command, out_wave), axis=1),
                            fmt='%5.6g', delimiter=',', header=header1 + ', ' + header2)
-                Qt.ShowMessage("Successfully saved file.", "Status")
+                Qt.ShowMessage(f"Successfully saved file with {out_command.shape[1]} traces.", "Status")
             except Exception as ex:
                 Qt.ShowMessage(f"Error saving file: {str(ex)}")
