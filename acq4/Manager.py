@@ -536,7 +536,7 @@ class Manager(Qt.QObject):
 
         modclass = modules.getModuleClass(moduleClassName)
 
-        mod = modclass(self, name, config)
+        mod = modclass(self, name, config)   # This is where module window becomes visible
         with self.lock:
             self.modules[name] = mod
 
@@ -602,14 +602,20 @@ class Manager(Qt.QObject):
 
     def moduleHasQuit(self, mod):
         with self.lock:
-            if mod.name in self.modules:
-                del self.modules[mod.name]
+            if hasattr(mod, 'name'):  # Because Analysis modules don't have .name attribute
+                name = mod.name
+            else:
+                name = mod.__class__.__name__
+
+            if name in self.modules:
+                del self.modules[name]
                 self.interfaceDir.removeObject(mod)
             else:
                 return
-        self.removeWindowShortcut(mod.window())
+        if hasattr(mod, 'window'):
+            self.removeWindowShortcut(mod.window())
         self.sigModulesChanged.emit()
-        self.sigModuleHasQuit.emit(mod.name)
+        self.sigModuleHasQuit.emit(name)
         # print "Module", mod.name, "has quit"
 
     def unloadModule(self, name):

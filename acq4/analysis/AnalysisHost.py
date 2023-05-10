@@ -72,4 +72,5 @@ class AnalysisHost(Qt.QMainWindow):
             ev.accept()
         
     def quit(self):
+        acq4.Manager.getManager().moduleHasQuit(self.mod)
         return self.mod.quit()

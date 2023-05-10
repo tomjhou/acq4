@@ -64,7 +64,7 @@
        <item>
         <widget class="QPushButton" name="loadBtn">
          <property name="text">
-          <string>Load File -&gt;</string>
+          <string>Load Selected File(s) -&gt;</string>
          </property>
         </widget>
        </item>
