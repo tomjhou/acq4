@@ -18,10 +18,18 @@ class StimParamSet(GroupParameter):
         with self.treeChangeBlocker():  ## about to make lots of tree changes;
                                         ## suppress change signal until we're done.
 
-            isIC = self.meta['y']['units'] == 'A'
-            isVC = self.meta['y']['units'] == 'V'
+            meta_y = self.meta['y']
 
-            ampl = None
+            if 'units' in meta_y:  # In mock DAQ, y-axis unit is in 'units'
+                isIC = meta_y['units'] == 'A'
+                isVC = meta_y['units'] == 'V'
+            elif 'suffix' in meta_y:  # In real DAQ, y-axis unit is in 'suffix'
+                isIC = meta_y['suffix'] == 'A'
+                isVC = meta_y['suffix'] == 'V'
+            else:
+                isIC = False
+                isVC = False
+
             if isIC:
                 # Current clamp pulse amplitude defaults to 10pA
                 ampl = 1e-11
@@ -64,7 +72,7 @@ class StimParamSet(GroupParameter):
         for c in item.childs:
             self.printDiagTree(c, level+1)
 
-    def setMeta(self, axis: str, opts: dict[str, type.Any] | None = None, root: 'PulseParameter' | None = None, **kargs):  ## set units, limits, etc.
+    def setMeta(self, axis: str, opts: dict[str, type.Any] | None = None, root: 'PulseParameter' | 'SeqParameter' | None = None, **kargs):  ## set units, limits, etc.
         ## Set meta-properties (units, limits, readonly, etc.) for specific sets of values
         ## axis should be 'x', 'y', or 'xy'
         if opts is None:
@@ -73,7 +81,7 @@ class StimParamSet(GroupParameter):
         if root is None:
             root = self
             self.meta[axis] = opts
-        ch: SeqParameter
+        ch: SeqParameter | PulseParameter
         for ch in root:
             if ch.opts.get('axis', None) == axis:   ## set options on any parameter that matches axis
                 ch.setOpts(**opts)
@@ -138,7 +146,6 @@ class SeqParameter(SimpleParameter):
             'range': initialParams+['sequence', 'start', 'stop', 'steps', 'log spacing', 'randomize'],
             'list':  initialParams+['sequence', 'list', 'randomize'],
         }
-
 
     def treeStateChanged(self, param, changes):
         ## catch changes to 'sequence' so we can hide/show other params.
@@ -222,7 +229,7 @@ class SeqParameter(SimpleParameter):
 
 
 class PulseParameter(GroupParameter):
-    def __init__(self, pulseWidth=0.005, pulseAmpl=0.1, **kargs):
+    def __init__(self, pulseWidth=0.005, pulseAmpl=0.0001, **kargs):
         if 'name' not in kargs:
             kargs['name'] = 'Pulse'
             kargs['autoIncrementName'] = True

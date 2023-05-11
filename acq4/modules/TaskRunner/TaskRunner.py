@@ -622,6 +622,19 @@ class TaskRunner(Module):
 
             ## Generate executable conf from task object
             prot = self.generateTask(dh)
+
+            amplitudeWarning = False
+            for p in prot:
+                if 'amplitudeWarning' in prot[p] and prot[p]['amplitudeWarning']:
+                    amplitudeWarning = True
+                    break
+
+            if amplitudeWarning:
+                ans = Qt.ShowYesNoMessage("Waveform has very high amplitude for current clamp (>1mA). Proceed anyway?")
+                if not ans:
+                    self.setStartBtnsEnable(True)
+                    return None
+
             # print prot
             self.sigTaskSequenceStarted.emit({})
             # print "runSingle: Starting taskThread.."

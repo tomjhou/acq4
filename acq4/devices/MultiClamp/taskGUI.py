@@ -182,6 +182,7 @@ class MultiClampTaskGui(TaskGui):
         # Plot all waves but disable auto-range first to improve performance.
         autoRange = self.ui.bottomPlotWidget.getViewBox().autoRangeEnabled()
         self.ui.bottomPlotWidget.enableAutoRange(x=False, y=False)
+
         try:
             for w in waves:
                 if w is not None:
@@ -256,6 +257,13 @@ class MultiClampTaskGui(TaskGui):
             if state['holdingCheck']:
                 task['holding'] = state['holdingSpin']
         #print "Task:", task
+
+        max_val = max(abs(wave))
+        if mode == 'IC' and max_val > 0.001:
+            task['amplitudeWarning'] = True
+        else:
+            task['amplitudeWarning'] = False
+
         return task
     
     def getSingleWave(self, params=None):
