@@ -215,7 +215,7 @@ class ExportCSV(AnalysisModule):
         self.tracesPlot.clear()
 
         ### plot all the traces with timestamps within the selected region (according to self.traceSelectRgn)
-        data = self.traces[(self.traces['timestamp'] > rgn[0]+self.expStart)
+        data = self.traces[(self.traces['timestamp'] >= rgn[0]+self.expStart)
                           *(self.traces['timestamp'] < rgn[1]+self.expStart)]
         
         for i, d in enumerate(data['data']):
