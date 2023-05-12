@@ -112,7 +112,7 @@ class DataManager(Module):
             self.ui.baseDirText.setText('')
         else:
             self.ui.baseDirText.setText(dh.name())
-        self.ui.fileTreeWidget.setBaseDirHandle(dh, addRoot=True)
+        self.ui.fileTreeWidget.setBaseDirHandle(dh, addRoot=False)
 
     def loadLog(self, *args, **kwargs):
         pass

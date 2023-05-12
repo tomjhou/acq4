@@ -53,7 +53,8 @@ class FileLoader(Qt.QWidget):
     def setBaseClicked(self, addRoot=False):  # Choose new base directory for file loader
         """
         Again, this is not part of the DataManager, but rather the individual analysis widgets.
-        :param addRoot:
+        :param addRoot: If True, then root folder also shows in tree. This is turned off for now because it seems to
+        cause problems elsewhere (especially in the FileAnalysisView, but possibly in the DataManagerModule as well)
         :return:
         """
         dh = self.dataManager.selectedFile()

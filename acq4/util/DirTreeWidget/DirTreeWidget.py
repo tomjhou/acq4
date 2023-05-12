@@ -199,7 +199,7 @@ class DirTreeWidget(Qt.QTreeWidget):
 
     def setRoot(self, d):
         """Synonym for setBaseDirHandle"""
-        return self.setBaseDirHandle(d, addRoot=True)
+        return self.setBaseDirHandle(d, addRoot=False)
 
     def setCurrentDir(self, d):
         #print "set current %s -> %s" % (self.currentDir, d)
