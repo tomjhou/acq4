@@ -258,11 +258,13 @@ class MultiClampTaskGui(TaskGui):
                 task['holding'] = state['holdingSpin']
         #print "Task:", task
 
-        max_val = max(abs(wave))
-        if mode == 'IC' and max_val > 0.001:
-            task['amplitudeWarning'] = True
-        else:
-            task['amplitudeWarning'] = False
+            max_val = max(abs(wave))
+            if mode == 'IC' and max_val > 0.001:
+                task['amplitudeWarning'] = True
+            else:
+                # Note that not all tasks will have this key, so
+                # anything that checks this key will have to make sure it exists first.
+                task['amplitudeWarning'] = False
 
         return task
     

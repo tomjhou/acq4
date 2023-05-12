@@ -163,7 +163,10 @@ class OutputChannelGui(DaqChannelGui):
         self.holdingCheckChanged()
         self.ui.functionCheck.setChecked(True)
 
-        self.ui.checkBoxAutoScaleAxes.stateChanged.connect(self.setAutoScale)
+        if hasattr(self.ui, 'checkBoxAutoScaleAxes'):
+            # TomJ: I have not added the autoscale checkbox to all
+            # devices, e.g. NiDAQ device has it, but not Stimulator
+            self.ui.checkBoxAutoScaleAxes.stateChanged.connect(self.setAutoScale)
 
     def getSpins(self):
         return (self.ui.preSetSpin, self.ui.holdingSpin)

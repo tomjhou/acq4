@@ -217,6 +217,9 @@ class Manager(Qt.QObject):
                 self.quit()
                 raise Exception("No modules loaded during startup, exiting now.")
 
+            if not self.baseDir.exists():
+                Qt.ShowMessage("Storage directory does not exist. Please check .cfg file or DataManager settings")
+
         win = self.modules[list(self.modules.keys())[0]].window()
         self.quitShortcut = Qt.QShortcut(Qt.QKeySequence('Ctrl+q'), win)
         self.quitShortcut.setContext(Qt.Qt.ApplicationShortcut)
