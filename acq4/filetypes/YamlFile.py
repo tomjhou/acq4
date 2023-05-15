@@ -1,5 +1,5 @@
 import os
-import yaml
+import yaml   # Need to install PyYAML to get this.
 
 from .FileType import FileType
 

@@ -42,6 +42,7 @@ def IsClampFile(path):
 
     return False
 
+
 def FindClampFilesRecursive(path):
     lst = []
     if os.path.isdir(path):
@@ -166,9 +167,7 @@ class ExportCSV(AnalysisModule):
 
         if len(clamp_files) >= 1:
             if self.parent_dir is None:
-                self.parent_dir=clamp_files[0]
-            else:
-                self.parent_dir = os.path.commonpath((self.parent_dir, clamp_files[0]))
+                self.parent_dir = os.path.commonpath(clamp_files)
 
         with pg.ProgressDialog("Loading data..", 0, len(clamp_files)) as dlg:
             for df in clamp_files:
