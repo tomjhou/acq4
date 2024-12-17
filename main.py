@@ -5,8 +5,8 @@ import sys
 
 
 def run_with_args():
-    print('Choose config:')
-    print('1. Default')
+    print('Choose configuration:')
+    print('1. Default (only choose this option if you have edited it for your specific hardware)')
     print('2. MultiClamp 700B')
     print('3. Simulated clamp')
     print('4. TestDebug')

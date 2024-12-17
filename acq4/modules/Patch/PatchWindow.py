@@ -99,7 +99,7 @@ class PatchWindow(Qt.QMainWindow):
             ws = Qt.QByteArray.fromPercentEncoding(six.b(uiState['window']))
             self.restoreState(ws)
             
-        self.ui.splitter_2.setSizes([self.width()/4, self.width()*3./4.])
+        self.ui.splitter_2.setSizes([int(self.width()/4), int(self.width()*3./4.)])
         self.ui.splitter.setStretchFactor(0, 30)
         self.ui.splitter.setStretchFactor(1, 10)
 

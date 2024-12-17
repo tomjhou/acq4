@@ -85,7 +85,7 @@ class Manager(Qt.QObject):
         self.definedModules = OrderedDict()  # all custom-defined module configurations
         self.config = OrderedDict()
         self.currentDir = None
-        self.baseDir = None
+        self.baseDir: DataManager.DirHandle | None = None
         self.exitOnError = False
         self.gui = None
         self.shortcuts = []
@@ -210,6 +210,7 @@ class Manager(Qt.QObject):
                 raise
 
         finally:
+
             if len(self.modules) == 0:
 
                 Qt.ShowMessage("No modules found. Are devices (DAQ/MultiClamp/camera) turned on? Also check if MultiClamp Commander is on.")
@@ -218,9 +219,37 @@ class Manager(Qt.QObject):
                 raise Exception("No modules loaded during startup, exiting now.")
 
             if not self.baseDir.exists():
-                Qt.ShowMessage("Storage directory does not exist. Please check .cfg file or DataManager settings")
+                msg = Qt.QMessageBox()
+
+                msg.setIcon(Qt.QMessageBox.Warning)
+
+                # setting message for Message Box
+                msg.setText(f"Storage directory \"{self.baseDir.path}\" does not exist.\n\n"
+                            f"Create it?")
+
+                # setting Message box window title
+                msg.setWindowTitle("Warning")
+
+                # declaring buttons on Message Box
+                msg.setStandardButtons(Qt.QMessageBox.Yes | Qt.QMessageBox.No)
+
+                # start the app
+                if msg.exec_() == Qt.QMessageBox.Yes:
+                    try:
+                        os.mkdir(self.baseDir.path)
+                    except Exception as ex:
+                        Qt.ShowMessage(f"Error {ex} creating directory {self.baseDir.path}\n\n"
+                                       f"Subsequent operaionts might fail. Please check .cfg file or DataManager settings")
+
+                else:
+                    Qt.ShowMessage(f"Warning: without a valid storage directory, subsequent operations might fail.\n\n"
+                                   f"It is highly recommended to modify .cfg file or DataManager settings")
+
 
         win = self.modules[list(self.modules.keys())[0]].window()
+        # Any warning dialogs will send main GUI behind PyCharm window again, so we raise it back up
+        win.raise_()
+
         self.quitShortcut = Qt.QShortcut(Qt.QKeySequence('Ctrl+q'), win)
         self.quitShortcut.setContext(Qt.Qt.ApplicationShortcut)
         self.abortShortcut = Qt.QShortcut(Qt.QKeySequence('Esc'), win)
@@ -539,6 +568,8 @@ class Manager(Qt.QObject):
 
         modclass = modules.getModuleClass(moduleClassName)
 
+        # Currently, modclass is acq4\modules\Manager\Manager.py. Calling the following
+        # causes module window to become visible.
         mod = modclass(self, name, config)   # This is where module window becomes visible
         with self.lock:
             self.modules[name] = mod
@@ -696,7 +727,15 @@ class Manager(Qt.QObject):
         """Show the Manager GUI"""
         if self.gui is None:
             self.gui = self.loadModule('Manager', 'Manager', {})
+
+        # If running from PyCharm (or any other IDE), the main window will be hidden behind the IDE, along with any
+        # warning dialogs. This brings window to front.
+        self.gui.win.setWindowFlag(Qt.QtCore.Qt.WindowStaysOnTopHint, True)
         self.gui.show()
+        # Now that window is on top, turn off StaysOnTopHint, or else any subsequent warning dialogs will be hidden.
+        # Strangely, this causes window to disappear entirely, so we have to show() it again
+        self.gui.win.setWindowFlag(Qt.QtCore.Qt.WindowStaysOnTopHint, False)
+        self.gui.win.show()
 
     def getCurrentDir(self):
         """
