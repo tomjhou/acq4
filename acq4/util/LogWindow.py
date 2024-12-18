@@ -502,9 +502,9 @@ class LogWidget(Qt.QWidget):
         """Runs each entry in self.entries through the filters and displays if it makes it through."""
         # make self.entries a record array, then filtering will be much faster (to OR true/false arrays, + them)
         # TODO FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
-        typeMask = self.entryArray["msgType"] == ""
+        typeMask = self.entryArray["msgType"] == b""
         for t in self.typeFilters:
-            typeMask += self.entryArray["msgType"] == t
+            typeMask += self.entryArray["msgType"] == str.encode(t, 'utf-8')
         mask = (self.entryArray["importance"] > self.importanceFilter) * typeMask
         if self.dirFilter is not False:
             _d = np.ascontiguousarray(self.entryArray["directory"])

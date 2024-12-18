@@ -6,17 +6,17 @@ import sys
 
 def run_with_args():
     print('Choose configuration:')
-    print('1. Default (only choose this option if you have edited it for your specific hardware)')
+    print('1. Default (full featured simulation)')
     print('2. MultiClamp 700B')
-    print('3. Simulated clamp')
+    print('3. Minimal simulation')
     print('4. TestDebug')
     inp = input('Select option: ')
     if inp == '1':
-        testargs = ["acq4", "-c", "./config/default.cfg"]
+        testargs = ["acq4", "-c", "./config/example/default.cfg"]
     elif inp == '2':
-        testargs = ["acq4", "-c", "./config/config_700B.cfg"]
+        testargs = ["acq4", "-c", "./config/example/default - 700B.cfg"]
     elif inp == '3':
-        testargs = ["acq4", "-c", "./config/config_simulated.cfg"]
+        testargs = ["acq4", "-c", "./config/example/default - simulated, minimal.cfg"]
     elif inp == '4':
         testargs = ["acq4", "-c", "./config/test_debug.cfg"]
     else:
